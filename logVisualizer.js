@@ -1,5 +1,12 @@
 'use strict';
-const chalk = require('chalk');
+// chalk 5 is ESM-only; attempt to load it but fall back to no-op color
+let chalk;
+try {
+  chalk = require('chalk').default;
+} catch (err) {
+  const noop = str => str;
+  chalk = new Proxy({}, { get: () => noop });
+}
 const { generateReport } = require('./reportGenerator');
 
 function printReport(patternResults, options = {}) {
