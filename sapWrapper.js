@@ -1,9 +1,5 @@
 const { randomUUID } = require('crypto');
-
-function logSAP(timestamp, uuid, direction, message) {
-  // SAP protocol: [timestamp] UUID direction message
-  console.log(`[${timestamp}] ${uuid} ${direction} ${message}`);
-}
+const { logSAP } = require('./sapLogger');
 
 function sapWrapper(originalAI) {
   // Wrap a function-style API client
