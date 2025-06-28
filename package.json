@@ -6,6 +6,9 @@
   "version": "1.0.0",
   "description": "One-line protocol to trace and regulate AI communication — a foundation for post-human transparency.",
   "main": "analyzeLogs.js",
+  "bin": {
+    "sap-analyzer": "./analyzeLogs.js"
+  },
   "devDependencies": {
     "jest": "^29.0.0"
   },
