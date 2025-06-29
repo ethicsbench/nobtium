@@ -1,18 +1,17 @@
-# sap-tracker
+旧称: sap-tracker
 
-[![npm version](https://img.shields.io/npm/v/sap-tracker.svg)](https://www.npmjs.com/package/sap-tracker)
-[![License](https://img.shields.io/npm/l/sap-tracker.svg)](LICENSE)
+# Nobtium
+
+[![npm version](https://img.shields.io/npm/v/Nobtium.svg)](https://www.npmjs.com/package/Nobtium)
+[![License](https://img.shields.io/npm/l/Nobtium.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-passing-blue)](#)
 
-`sap-tracker` is a lightweight audit layer for AI conversations. It records prompts
-and responses in a simple JSONL file and offers an offline analyzer to spot
-potential issues such as repeated or abnormal messages. Drop it in or remove it
-with a single line – no lock‑in or heavy dependencies.
+Nobtium is a lightweight AI conversation auditing toolkit.
 
 ## Installation
 
 ```bash
-npm install sap-tracker
+npm install Nobtium
 ```
 
 That is all you need to start logging.
@@ -24,7 +23,7 @@ example using the OpenAI SDK:
 
 ```js
 const { Configuration, OpenAIApi } = require('openai');
-const { wrap } = require('sap-tracker');
+const { wrap } = require('Nobtium');
 
 const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
 
