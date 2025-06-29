@@ -81,6 +81,7 @@ function analyzeLogs(logPath, opts = {}) {
 }
 
 if (require.main === module) {
+  console.warn('This tool records conversations. Consent is required before use.');
   const vm = new ViolationManager();
   const userId = `${os.hostname()}-${os.userInfo().username}`;
   const action = vm.addViolation(userId);
