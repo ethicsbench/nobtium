@@ -1,53 +1,55 @@
-const { randomUUID } = require('crypto');
-const { logSAP } = require('./sapLogger');
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const { sanitizeLogs } = require('./logUtils');
 
-function sapWrapper(originalAI) {
-  // Wrap a function-style API client
-  if (typeof originalAI === 'function') {
-    return async function(...args) {
-      const uuid = randomUUID();
-      const ts = new Date().toISOString();
-      logSAP(ts, uuid, '>', args[0]);
-      const response = await originalAI.apply(this, args);
-      logSAP(new Date().toISOString(), uuid, '<', response);
-      return response;
+const LOG_PATH = path.join(__dirname, 'sap_logs.json');
+
+function loadLogs() {
+  try {
+    const raw = fs.readFileSync(LOG_PATH, 'utf8');
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('Failed to read sap logs:', err);
+    }
+    return [];
+  }
+}
+
+function saveLog(entry) {
+  const logs = loadLogs();
+  const sanitized = sanitizeLogs([entry])[0];
+  logs.push(sanitized);
+  try {
+    fs.writeFileSync(LOG_PATH, JSON.stringify(logs, null, 2));
+  } catch (err) {
+    console.error('Failed to write sap logs:', err);
+  }
+}
+
+function wrap(fn) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('wrap expects a function');
+  }
+  return async function wrapped(...args) {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      function: fn.name || 'anonymous',
+      arguments: JSON.stringify(args),
     };
-  }
-
-  // Wrap an object with a 'send' method by default
-  if (typeof originalAI === 'object' && typeof originalAI.send === 'function') {
-    return new Proxy(originalAI, {
-      get(target, prop) {
-        if (prop === 'send') {
-          return async function(...args) {
-            const uuid = randomUUID();
-            logSAP(new Date().toISOString(), uuid, '>', args[0]);
-            const response = await target.send.apply(this, args);
-            logSAP(new Date().toISOString(), uuid, '<', response);
-            return response;
-          };
-        }
-        return target[prop];
-      },
-    });
-  }
-
-  throw new Error('Unsupported AI client interface');
+    try {
+      const result = await fn.apply(this, args);
+      entry.result = JSON.stringify(result);
+      saveLog(entry);
+      return result;
+    } catch (err) {
+      entry.error = err && err.message;
+      saveLog(entry);
+      throw err;
+    }
+  };
 }
 
-module.exports = { sapWrapper };
-
-// Example usage
-if (require.main === module) {
-  // Dummy AI function that echoes the message
-  async function dummyAI(msg) {
-    return `Echo: ${msg}`;
-  }
-
-  const ai = sapWrapper(dummyAI);
-
-  (async () => {
-    const reply = await ai('Hello AI');
-    console.log('Reply:', reply);
-  })();
-}
+module.exports = { wrap };
