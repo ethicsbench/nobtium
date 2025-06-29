@@ -1,3 +1,7 @@
 node_modules/
 saplog.jsonl
 package-lock.json
+
+# Ignore private signing keys
+keys/private.pem
+# Do not use a wildcard here so public.pem and docs remain tracked
