@@ -49,6 +49,22 @@ cost_summary:
       cost: "$2.00"
 ```
 
+### 4. Performance Anomaly Detection
+
+- Flags deviations from expected response time ranges.
+- Suggests alternative models or providers based on current performance metrics.
+
+### 5. Compliance and Audit Log Generation
+
+- Generates structured logs for use in internal audits and regulatory reporting (e.g., GDPR readiness).
+- Logs can be exported and filtered based on time range or rule violations.
+
+### Implementation Notes
+
+- These benefits require no server dependencies.
+- All processing is local and opt-in: only wrapped functions are logged.
+- Behavior can be customized via `nobtium_rules.yaml`.
+
 ## Wrapping an AI client
 
 Wrap any function that sends a prompt and returns a response. Below is an
