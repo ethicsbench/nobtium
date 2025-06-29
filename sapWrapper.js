@@ -119,44 +119,38 @@ function verifySignatures() {
   }
   return true;
 }
-function wrap(fn) {
-  if (typeof fn !== 'function') {
-    throw new TypeError('wrap expects a function');
-  }
-  return async function wrapped(...args) {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      function: fn.name || 'anonymous',
-      arguments: JSON.stringify(args),
-    };
-    if (shouldIncludeSession()) {
-      entry.session_id = crypto.randomUUID();
-      let ip;
-      for (const arg of args) {
-        if (!arg || typeof arg !== 'object') continue;
-        if (arg.ip) { ip = arg.ip; break; }
-        if (arg.headers && arg.headers['x-forwarded-for']) {
-          ip = arg.headers['x-forwarded-for'];
-          break;
-        }
-        if (arg.connection && arg.connection.remoteAddress) {
-          ip = arg.connection.remoteAddress;
-          break;
-        }
-      }
-      if (ip) entry.ip_address = ip;
-    }
+function wrapWithErrorLogging(fn, metadata = {}) {
+  return async function (...args) {
+    const start = Date.now();
     try {
-      const result = await fn.apply(this, args);
-      entry.result = JSON.stringify(result);
-      saveLog(entry);
+      const result = await fn(...args);
+      const latency = Date.now() - start;
+      fs.appendFileSync('multi_agent_log.json', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        agent_name: metadata.agent || 'unknown',
+        model: metadata.model,
+        provider: metadata.provider,
+        prompt: args[0],
+        response: result,
+        latency_ms: latency
+      }) + '\n');
       return result;
-    } catch (err) {
-      entry.error = err && err.message;
-      saveLog(entry);
-      throw err;
+    } catch (error) {
+      fs.appendFileSync('multi_agent_error_log.json', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        agent_name: metadata.agent || 'unknown',
+        model: metadata.model,
+        provider: metadata.provider,
+        request_id: metadata.request_id || null,
+        error: error.message
+      }) + '\n');
+      throw error;
     }
-  };
+  }
 }
 
-module.exports = { wrap, verifySignatures };
+module.exports = {
+  wrap: wrapWithErrorLogging,
+  wrapWithErrorLogging,
+  verifySignatures
+};

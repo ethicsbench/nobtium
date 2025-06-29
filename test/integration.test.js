@@ -7,9 +7,9 @@ const { ViolationManager } = require('../violation_manager');
 
 test('end-to-end logging and violation handling', async () => {
   const rootDir = path.join(__dirname, '..');
-  const linkPath = path.join(rootDir, 'nobtium_logs.json');
-  const tmpLog = path.join(os.tmpdir(), `nobtium_log-${Date.now()}.json`);
-  fs.writeFileSync(tmpLog, '[]');
+  const linkPath = path.join(rootDir, 'multi_agent_log.json');
+  const tmpLog = path.join(os.tmpdir(), `multi_log-${Date.now()}.json`);
+  fs.writeFileSync(tmpLog, '');
   if (fs.existsSync(linkPath)) fs.unlinkSync(linkPath);
   fs.symlinkSync(tmpLog, linkPath);
 
@@ -29,27 +29,20 @@ test('end-to-end logging and violation handling', async () => {
   expect(action).toBe('block');
 
   const auditFile = path.join(os.tmpdir(), `audit-${Date.now()}.json`);
-  // convert array log to jsonl for analyzeLogs which expects json lines
-  const jsonLines = JSON.parse(fs.readFileSync(tmpLog, 'utf8'))
-    .map(e => JSON.stringify(e))
-    .join('\n') + '\n';
-  const analysisLog = path.join(os.tmpdir(), `analysis-${Date.now()}.jsonl`);
-  fs.writeFileSync(analysisLog, jsonLines);
-  analyzeLogs(analysisLog, { mode: 'summary', auditPath: auditFile });
+  analyzeLogs(tmpLog, { mode: 'summary', auditPath: auditFile });
 
   const lines = fs.readFileSync(auditFile, 'utf8').trim().split('\n');
   expect(lines.length).toBe(1);
   const entry = JSON.parse(lines[0]);
-  expect(entry.logPath).toBe(analysisLog);
+  expect(entry.logPath).toBe(tmpLog);
   expect(entry.mode).toBe('summary');
 
-  const logs = JSON.parse(fs.readFileSync(tmpLog, 'utf8'));
+  const logs = fs.readFileSync(tmpLog, 'utf8').trim().split('\n').filter(Boolean).map(l => JSON.parse(l));
   expect(logs.length).toBe(2);
-  expect(logs[0].function).toBe('dummy');
+  expect(logs[0].response).toBe('reply:one');
 
   fs.unlinkSync(linkPath);
   fs.unlinkSync(tmpLog);
   fs.unlinkSync(auditFile);
-  fs.unlinkSync(analysisLog);
   fs.unlinkSync(violationLog);
 });

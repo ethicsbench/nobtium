@@ -1,47 +1,47 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const crypto = require('crypto');
-const yaml = require('js-yaml');
-const { wrap, verifySignatures } = require('../sapWrapper');
+const { wrap } = require('../sapWrapper');
 
-test('log entries are signed and verifiable when enabled', async () => {
+test('logs success and errors with metadata', async () => {
   const rootDir = path.join(__dirname, '..');
-  const logLink = path.join(rootDir, 'nobtium_logs.json');
-  const tmpLog = path.join(os.tmpdir(), `nobtium_log-${Date.now()}.json`);
-  fs.writeFileSync(tmpLog, '[]');
+  const logLink = path.join(rootDir, 'multi_agent_log.json');
+  const errLink = path.join(rootDir, 'multi_agent_error_log.json');
+  const tmpLog = path.join(os.tmpdir(), `multi_log-${Date.now()}.json`);
+  const tmpErr = path.join(os.tmpdir(), `multi_err-${Date.now()}.json`);
+  fs.writeFileSync(tmpLog, '');
+  fs.writeFileSync(tmpErr, '');
   if (fs.existsSync(logLink)) fs.unlinkSync(logLink);
+  if (fs.existsSync(errLink)) fs.unlinkSync(errLink);
   fs.symlinkSync(tmpLog, logLink);
+  fs.symlinkSync(tmpErr, errLink);
 
-  const rulesPath = path.join(rootDir, 'nobtium_rules.yaml');
-  const original = fs.readFileSync(rulesPath, 'utf8');
-  const cfg = yaml.load(original);
+  const dummy = async function dummy(flag) {
+    if (flag === 'bad') throw new Error('fail');
+    return 'ok';
+  };
+  const wrapped = wrap(dummy, {
+    agent: 'tester',
+    model: 'gpt',
+    provider: 'openai',
+    request_id: '123'
+  });
 
-  cfg.rules.log_signing.enabled = true;
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
-  const keyPath = path.join(os.tmpdir(), `priv-${Date.now()}.pem`);
-  const pubPath = path.join(os.tmpdir(), `pub-${Date.now()}.pem`);
-  fs.writeFileSync(keyPath, privateKey.export({ type: 'pkcs1', format: 'pem' }));
-  fs.writeFileSync(pubPath, publicKey.export({ type: 'pkcs1', format: 'pem' }));
-  cfg.rules.log_signing.private_key_path = keyPath;
-  cfg.rules.log_signing.public_key_path = pubPath;
-  fs.writeFileSync(rulesPath, yaml.dump(cfg));
+  await wrapped('good');
+  await expect(wrapped('bad')).rejects.toThrow('fail');
 
-  const dummy = async function dummy() { return 'ok'; };
-  const wrapped = wrap(dummy);
-  await wrapped();
-  await wrapped();
+  const success = fs.readFileSync(tmpLog, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
+  expect(success.length).toBe(1);
+  expect(success[0].response).toBe('ok');
+  expect(typeof success[0].latency_ms).toBe('number');
 
-  const logs = JSON.parse(fs.readFileSync(tmpLog, 'utf8'));
-  expect(logs.length).toBe(2);
-  for (const entry of logs) {
-    expect(typeof entry.signature).toBe('string');
-  }
-  expect(verifySignatures()).toBe(true);
+  const errors = fs.readFileSync(tmpErr, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
+  expect(errors.length).toBe(1);
+  expect(errors[0].error).toBe('fail');
+  expect(errors[0].request_id).toBe('123');
 
-  fs.writeFileSync(rulesPath, original);
   fs.unlinkSync(logLink);
+  fs.unlinkSync(errLink);
   fs.unlinkSync(tmpLog);
-  fs.unlinkSync(keyPath);
-  fs.unlinkSync(pubPath);
+  fs.unlinkSync(tmpErr);
 });
