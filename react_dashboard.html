@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Summary Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+</head>
+<body class="p-4 font-sans">
+  <div id="root"></div>
+  <script type="text/javascript">
+    const { useState, useEffect } = React;
+    function Dashboard() {
+      const [summary, setSummary] = useState(null);
+      useEffect(() => {
+        fetch('/api/summary')
+          .then(r => r.json())
+          .then(setSummary)
+          .catch(err => console.error('Failed to load summary', err));
+      }, []);
+      if (!summary) return React.createElement('div', null, 'Loading...');
+      return (
+        React.createElement('div', { className: 'space-y-12' },
+          React.createElement('div', null,
+            React.createElement('h2', { className: 'text-xl font-bold mb-2' }, 'Agent Usage'),
+            React.createElement(Recharts.BarChart, { width: 600, height: 300, data: summary.agentUsage },
+              React.createElement(Recharts.XAxis, { dataKey: 'agent' }),
+              React.createElement(Recharts.YAxis, null),
+              React.createElement(Recharts.Tooltip, null),
+              React.createElement(Recharts.Legend, null),
+              React.createElement(Recharts.Bar, { dataKey: 'count', fill: '#8884d8' })
+            )
+          ),
+          React.createElement('div', null,
+            React.createElement('h2', { className: 'text-xl font-bold mb-2' }, 'Model Usage'),
+            React.createElement(Recharts.BarChart, { width: 600, height: 300, data: summary.modelUsage },
+              React.createElement(Recharts.XAxis, { dataKey: 'model' }),
+              React.createElement(Recharts.YAxis, null),
+              React.createElement(Recharts.Tooltip, null),
+              React.createElement(Recharts.Legend, null),
+              React.createElement(Recharts.Bar, { dataKey: 'count', fill: '#82ca9d' })
+            )
+          )
+        )
+      );
+    }
+    ReactDOM.render(React.createElement(Dashboard), document.getElementById('root'));
+  </script>
+</body>
+</html>
