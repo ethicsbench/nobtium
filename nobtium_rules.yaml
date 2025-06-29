@@ -1,4 +1,4 @@
-# SAP Tracker security and privacy rules
+# Nobtium security and privacy rules
 
 rules:
   storage: "local_file_only"        # logs are kept in local files only (no external transmission)

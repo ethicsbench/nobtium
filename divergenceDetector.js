@@ -51,8 +51,8 @@ function detectDivergence(logFilePath) {
 
 module.exports = { detectDivergence };
 
-// If run directly, analyze default saplog.jsonl in this directory
+// If run directly, analyze default nobtium_log.jsonl in this directory
 if (require.main === module) {
-  const logPath = require('path').join(__dirname, 'saplog.jsonl');
+  const logPath = require('path').join(__dirname, 'nobtium_log.jsonl');
   detectDivergence(logPath);
 }

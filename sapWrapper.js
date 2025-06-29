@@ -5,8 +5,8 @@ const crypto = require('crypto');
 const yaml = require('js-yaml');
 const { sanitizeLogs } = require('./logUtils');
 
-const LOG_PATH = path.join(__dirname, 'sap_logs.json');
-const RULES_PATH = path.join(__dirname, 'sap_rules.yaml');
+const LOG_PATH = path.join(__dirname, 'nobtium_logs.json');
+const RULES_PATH = path.join(__dirname, 'nobtium_rules.yaml');
 
 function canonicalStringify(value) {
   if (Array.isArray(value)) {
@@ -57,7 +57,7 @@ function loadLogs() {
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     if (err.code !== 'ENOENT') {
-      console.error('Failed to read sap logs:', err);
+      console.error('Failed to read Nobtium logs:', err);
     }
     return [];
   }
@@ -83,7 +83,7 @@ function saveLog(entry) {
   try {
     fs.writeFileSync(LOG_PATH, JSON.stringify(logs, null, 2));
   } catch (err) {
-    console.error('Failed to write sap logs:', err);
+    console.error('Failed to write Nobtium logs:', err);
   }
 }
 

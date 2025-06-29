@@ -7,13 +7,13 @@ const { wrap, verifySignatures } = require('../sapWrapper');
 
 test('log entries are signed and verifiable when enabled', async () => {
   const rootDir = path.join(__dirname, '..');
-  const logLink = path.join(rootDir, 'sap_logs.json');
-  const tmpLog = path.join(os.tmpdir(), `saplog-${Date.now()}.json`);
+  const logLink = path.join(rootDir, 'nobtium_logs.json');
+  const tmpLog = path.join(os.tmpdir(), `nobtium_log-${Date.now()}.json`);
   fs.writeFileSync(tmpLog, '[]');
   if (fs.existsSync(logLink)) fs.unlinkSync(logLink);
   fs.symlinkSync(tmpLog, logLink);
 
-  const rulesPath = path.join(rootDir, 'sap_rules.yaml');
+  const rulesPath = path.join(rootDir, 'nobtium_rules.yaml');
   const original = fs.readFileSync(rulesPath, 'utf8');
   const cfg = yaml.load(original);
 

@@ -5,8 +5,8 @@ const path = require('path');
 const crypto = require('crypto');
 const yaml = require('js-yaml');
 
-const LOG_PATH = path.join(__dirname, 'sap_logs.json');
-const ENC_PATH = path.join(__dirname, 'sap_logs.enc');
+const LOG_PATH = path.join(__dirname, 'nobtium_logs.json');
+const ENC_PATH = path.join(__dirname, 'nobtium_logs.enc');
 const PASSPHRASE = 'nobtium-secret';
 const ALGO = 'aes-256-cbc';
 const KEY = crypto.createHash('sha256').update(PASSPHRASE).digest();
@@ -43,11 +43,11 @@ function verifySignatures() {
 
   let publicKey;
   try {
-    const rulesRaw = fs.readFileSync(path.join(__dirname, 'sap_rules.yaml'), 'utf8');
+    const rulesRaw = fs.readFileSync(path.join(__dirname, 'nobtium_rules.yaml'), 'utf8');
     const cfg = yaml.load(rulesRaw);
     const pkRel = cfg?.rules?.log_signing?.public_key_path;
     if (!pkRel) {
-      console.error('Public key path not found in sap_rules.yaml');
+      console.error('Public key path not found in nobtium_rules.yaml');
       return;
     }
     const pkPath = path.resolve(__dirname, pkRel);

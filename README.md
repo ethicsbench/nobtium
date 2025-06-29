@@ -41,7 +41,7 @@ const answer = await trackedAsk('Hello, world!');
 console.log(answer);
 ```
 
-Every call writes a log entry to `sap_logs.json` in the project directory.
+Every call writes a log entry to `nobtium_logs.json` in the project directory.
 
 ## Log format
 
@@ -65,7 +65,7 @@ You control the log file and can purge it at any time.
 After collecting logs you can run the CLI to look for anomalies:
 
 ```bash
-npx sap-analyzer sap_logs.json
+npx nobtium-analyzer nobtium_logs.json
 ```
 
 Example output:
@@ -80,7 +80,7 @@ The analyzer also prints a colorized summary to the console for quick review.
 To view a live metrics table instead of a text summary, run:
 
 ```bash
-npx sap-analyzer sap_logs.json --mode live
+npx nobtium-analyzer nobtium_logs.json --mode live
 ```
 
 For a browser-based dashboard with charts, run:
@@ -103,17 +103,17 @@ Happy tracking!
 ## 🔐 Security & Permissions
 
 - All logs are stored locally; the tracker does not upload log data anywhere.
-- Restrict permissions on files such as `sap_logs.json` and `auditTrail.json` (e.g. `chmod 600`).
+- Restrict permissions on files such as `nobtium_logs.json` and `auditTrail.json` (e.g. `chmod 600`).
 - This tool should **not** be used on other users' data without their explicit consent.
 - Add log files to your `.gitignore` so they are not committed to version control.
 
-If you enable `session_logging` in `sap_rules.yaml` (under `rules.session_logging`),
+If you enable `session_logging` in `nobtium_rules.yaml` (under `rules.session_logging`),
 the tracker will also record a `session_id` and `ip_address` with each entry.
 These values can be considered personally identifiable information (PII) and
 therefore require explicit user consent before they are logged. This feature is
 opt‑in and disabled by default.
 
-If you enable `log_signing` in `sap_rules.yaml` (under `rules.log_signing.enabled`),
+If you enable `log_signing` in `nobtium_rules.yaml` (under `rules.log_signing.enabled`),
 each log entry will be signed using the private key specified by
 `private_key_path`. Signatures can then be verified with the corresponding
 public key at `public_key_path` to detect tampering. This capability is

@@ -1,5 +1,5 @@
 node_modules/
-saplog.jsonl
+nobtium_log.jsonl
 package-lock.json
 
 # Ignore private signing keys
