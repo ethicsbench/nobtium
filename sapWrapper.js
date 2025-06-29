@@ -141,6 +141,7 @@ function wrapWithErrorLogging(fn, metadata = {}) {
       );
       return result;
     } catch (error) {
+      const latency = Date.now() - start;
       const errorEntry = {
         timestamp: new Date().toISOString(),
         agent_name: metadata.agent || 'unknown',
@@ -149,6 +150,7 @@ function wrapWithErrorLogging(fn, metadata = {}) {
         request_id: metadata.request_id || null,
         error: error.message,
         prompt: args[0],
+        latency_ms: latency,
       };
       fs.appendFileSync(
         'multi_agent_error_log.json',
