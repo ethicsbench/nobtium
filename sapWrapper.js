@@ -8,6 +8,25 @@ const { sanitizeLogs } = require('./logUtils');
 const LOG_PATH = path.join(__dirname, 'sap_logs.json');
 const RULES_PATH = path.join(__dirname, 'sap_rules.yaml');
 
+function canonicalStringify(value) {
+  if (Array.isArray(value)) {
+    return '[' + value.map(v => canonicalStringify(v)).join(',') + ']';
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value).sort();
+    return (
+      '{' +
+      keys
+        .map(k => {
+          return JSON.stringify(k) + ':' + canonicalStringify(value[k]);
+        })
+        .join(',') +
+      '}'
+    );
+  }
+  return JSON.stringify(value);
+}
+
 function shouldIncludeSession() {
   try {
     const rulesRaw = fs.readFileSync(RULES_PATH, 'utf8');
@@ -53,7 +72,7 @@ function saveLog(entry) {
       const keyPath = path.resolve(__dirname, signCfg.private_key_path);
       const key = fs.readFileSync(keyPath, 'utf8');
       const signer = crypto.createSign('RSA-SHA256');
-      signer.update(JSON.stringify(sanitized));
+      signer.update(canonicalStringify(sanitized));
       signer.end();
       sanitized.signature = signer.sign(key, 'base64');
     } catch (err) {
@@ -68,6 +87,38 @@ function saveLog(entry) {
   }
 }
 
+function verifySignatures() {
+  const signCfg = getSigningConfig();
+  if (!signCfg || !signCfg.public_key_path) {
+    console.error('Log signing not properly configured');
+    return false;
+  }
+  let publicKey;
+  try {
+    const pkPath = path.resolve(__dirname, signCfg.public_key_path);
+    publicKey = fs.readFileSync(pkPath, 'utf8');
+  } catch (err) {
+    console.error('Failed to load public key:', err);
+    return false;
+  }
+
+  const logs = loadLogs();
+  for (const entry of logs) {
+    if (!entry || typeof entry !== 'object' || !entry.signature) continue;
+    const { signature, ...data } = entry;
+    try {
+      const verifier = crypto.createVerify('RSA-SHA256');
+      verifier.update(canonicalStringify(data));
+      verifier.end();
+      const valid = verifier.verify(publicKey, signature, 'base64');
+      if (!valid) return false;
+    } catch (err) {
+      console.error('Verification error:', err);
+      return false;
+    }
+  }
+  return true;
+}
 function wrap(fn) {
   if (typeof fn !== 'function') {
     throw new TypeError('wrap expects a function');
@@ -108,4 +159,4 @@ function wrap(fn) {
   };
 }
 
-module.exports = { wrap };
+module.exports = { wrap, verifySignatures };
