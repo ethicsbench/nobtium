@@ -25,39 +25,50 @@ function appendWithHash(entry, filePath) {
   fs.appendFileSync(filePath, JSON.stringify(finalEntry) + '\n');
 }
 
-function verify(filePath) {
+function validateChain(filePath) {
   let lines;
   try {
     lines = fs.readFileSync(filePath, 'utf8').split('\n').filter(Boolean);
   } catch (err) {
-    console.error('Failed to read file for verification:', err);
-    return;
+    console.error('Failed to read file for validation:', err);
+    return false;
   }
 
   let expectedPrevHash = null;
 
-  lines.forEach((line, idx) => {
+  for (let i = 0; i < lines.length; i++) {
     let entry;
     try {
-      entry = JSON.parse(line);
+      entry = JSON.parse(lines[i]);
     } catch (err) {
-      console.error(`Invalid JSON on line ${idx + 1}`);
-      return;
+      console.warn(`Invalid JSON on line ${i + 1}`);
+      return false;
     }
 
     if (entry.prevHash !== expectedPrevHash) {
-      console.log(`Tampering detected at line ${idx + 1}: prevHash mismatch`);
+      console.warn(`Chain break at line ${i + 1}: prevHash mismatch`);
+      return false;
     }
 
     const { hash, ...withoutHash } = entry;
-    const computedHash = crypto.createHash('sha256').update(JSON.stringify(withoutHash)).digest('hex');
+    const computedHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(withoutHash))
+      .digest('hex');
 
     if (hash !== computedHash) {
-      console.log(`Tampering detected at line ${idx + 1}: hash mismatch`);
+      console.warn(`Chain break at line ${i + 1}: hash mismatch`);
+      return false;
     }
 
     expectedPrevHash = hash;
-  });
+  }
+
+  return true;
 }
 
-module.exports = { appendWithHash, verify };
+function verify(filePath) {
+  validateChain(filePath);
+}
+
+module.exports = { appendWithHash, verify, validateChain };
