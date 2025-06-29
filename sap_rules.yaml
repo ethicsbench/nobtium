@@ -8,6 +8,7 @@ rules:
     threshold_len: 100              # replace strings over 100 characters with [MASKED]
   startup_warning: true             # display a warning when CLI starts
   audit_trail: true                 # keep an internal audit log (auditTrail.json)
+  session_logging: false            # include session_id and IP address in logs
 
 user_consent:
   required: true

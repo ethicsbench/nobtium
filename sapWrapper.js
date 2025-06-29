@@ -1,9 +1,22 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const yaml = require('js-yaml');
 const { sanitizeLogs } = require('./logUtils');
 
 const LOG_PATH = path.join(__dirname, 'sap_logs.json');
+const RULES_PATH = path.join(__dirname, 'sap_rules.yaml');
+
+function shouldIncludeSession() {
+  try {
+    const rulesRaw = fs.readFileSync(RULES_PATH, 'utf8');
+    const cfg = yaml.load(rulesRaw);
+    return cfg && cfg.rules && cfg.rules.session_logging === true;
+  } catch {
+    return false;
+  }
+}
 
 function loadLogs() {
   try {
@@ -39,6 +52,23 @@ function wrap(fn) {
       function: fn.name || 'anonymous',
       arguments: JSON.stringify(args),
     };
+    if (shouldIncludeSession()) {
+      entry.session_id = crypto.randomUUID();
+      let ip;
+      for (const arg of args) {
+        if (!arg || typeof arg !== 'object') continue;
+        if (arg.ip) { ip = arg.ip; break; }
+        if (arg.headers && arg.headers['x-forwarded-for']) {
+          ip = arg.headers['x-forwarded-for'];
+          break;
+        }
+        if (arg.connection && arg.connection.remoteAddress) {
+          ip = arg.connection.remoteAddress;
+          break;
+        }
+      }
+      if (ip) entry.ip_address = ip;
+    }
     try {
       const result = await fn.apply(this, args);
       entry.result = JSON.stringify(result);

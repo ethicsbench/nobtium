@@ -10,6 +10,7 @@ test('end-to-end logging and violation handling', async () => {
   const linkPath = path.join(rootDir, 'sap_logs.json');
   const tmpLog = path.join(os.tmpdir(), `saplog-${Date.now()}.json`);
   fs.writeFileSync(tmpLog, '[]');
+  if (fs.existsSync(linkPath)) fs.unlinkSync(linkPath);
   fs.symlinkSync(tmpLog, linkPath);
 
   const dummyFn = async function dummy(msg) {
