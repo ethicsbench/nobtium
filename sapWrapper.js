@@ -148,6 +148,7 @@ function wrapWithErrorLogging(fn, metadata = {}) {
         provider: metadata.provider,
         request_id: metadata.request_id || null,
         error: error.message,
+        prompt: args[0],
       };
       fs.appendFileSync(
         'multi_agent_error_log.json',
