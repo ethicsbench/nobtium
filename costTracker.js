@@ -3,8 +3,9 @@
 function summarizeCosts(logs) {
   if (!Array.isArray(logs)) return {};
 
+  // Static pricing per 1000 tokens for supported models
   const TOKEN_RATES = {
-    'GPT-4': 0.06,      // cost per 1000 tokens in USD (mock values)
+    'GPT-4': 0.06,
     'Claude-3': 0.03,
     'GPT-3.5': 0.002,
     'Whisper': 0.001
@@ -12,18 +13,20 @@ function summarizeCosts(logs) {
 
   const totals = {};
 
-  logs.forEach(entry => {
-    if (!entry || !entry.model) return;
+  for (const entry of logs) {
+    if (!entry || typeof entry.model !== 'string') continue;
     const tokens = Number(entry.tokens_used);
-    if (!Number.isFinite(tokens)) return;
+    if (!Number.isFinite(tokens)) continue;
+
     const rate = TOKEN_RATES[entry.model] || 0;
     const cost = (tokens / 1000) * rate;
     totals[entry.model] = (totals[entry.model] || 0) + cost;
-  });
+  }
 
-  Object.keys(totals).forEach(model => {
+  for (const model of Object.keys(totals)) {
+    // round to cents for readability
     totals[model] = Math.round(totals[model] * 100) / 100;
-  });
+  }
 
   return totals;
 }
