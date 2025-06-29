@@ -28,4 +28,11 @@ function summarizeCosts(logs) {
   return totals;
 }
 
-module.exports = { summarizeCosts };
+function detectCostAnomaly(costUSD, threshold = 0.20) {
+  if (typeof costUSD !== 'number' || !Number.isFinite(costUSD)) {
+    return null;
+  }
+  return costUSD > threshold ? 'cost_alert' : null;
+}
+
+module.exports = { summarizeCosts, detectCostAnomaly };
