@@ -6,7 +6,7 @@
     "express": "^4.18.2",
     "js-yaml": "^3.14.1"
   },
-  "name": "sap-tracker",
+  "name": "nobtium",
   "version": "1.0.0",
   "description": "One-line protocol to trace and regulate AI communication — a foundation for post-human transparency.",
   "main": "analyzeLogs.js",
@@ -32,10 +32,10 @@
   "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethicsbench/sap-tracker.git"
+    "url": "git+https://github.com/ethicsbench/nobtium.git"
   },
   "bugs": {
-    "url": "https://github.com/ethicsbench/sap-tracker/issues"
+    "url": "https://github.com/ethicsbench/nobtium/issues"
   },
-  "homepage": "https://github.com/ethicsbench/sap-tracker#readme"
+  "homepage": "https://github.com/ethicsbench/nobtium#readme"
 }

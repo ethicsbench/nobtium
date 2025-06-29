@@ -7,7 +7,7 @@ const yaml = require('js-yaml');
 
 const LOG_PATH = path.join(__dirname, 'sap_logs.json');
 const ENC_PATH = path.join(__dirname, 'sap_logs.enc');
-const PASSPHRASE = 'sap-tracker-secret';
+const PASSPHRASE = 'nobtium-secret';
 const ALGO = 'aes-256-cbc';
 const KEY = crypto.createHash('sha256').update(PASSPHRASE).digest();
 const IV = Buffer.alloc(16, 0); // fixed IV
