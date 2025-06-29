@@ -92,21 +92,14 @@ const answer = await trackedAsk('Hello, world!');
 console.log(answer);
 ```
 
-Every call writes a log entry to `nobtium_logs.json` in the project directory.
+Every call writes a log entry to `multi_agent_log.json` in the project directory.
 
 ## Log format
 
-Logs are stored as a JSON array:
+Logs are stored as newline-delimited JSON (JSONL):
 
 ```json
-[
-  {
-    "timestamp": "2025-06-29T01:03:59.670Z",
-    "function": "ask",
-    "arguments": "[\"Hello AI\"]",
-    "result": "\"Echo: Hello AI\""
-  }
-]
+{"timestamp":"2025-06-29T01:03:59.670Z","function":"ask","arguments":"[\"Hello AI\"]","result":"\"Echo: Hello AI\""}
 ```
 
 You control the log file and can purge it at any time.
@@ -116,7 +109,7 @@ You control the log file and can purge it at any time.
 After collecting logs you can run the CLI to look for anomalies:
 
 ```bash
-npx nobtium-analyzer nobtium_logs.json
+npx nobtium-analyzer multi_agent_log.json
 ```
 
 Example output:
@@ -131,7 +124,7 @@ The analyzer also prints a colorized summary to the console for quick review.
 To view a live metrics table instead of a text summary, run:
 
 ```bash
-npx nobtium-analyzer nobtium_logs.json --mode live
+npx nobtium-analyzer multi_agent_log.json --mode live
 ```
 
 For a browser-based dashboard with charts, run:
@@ -154,7 +147,7 @@ Happy tracking!
 ## 🔐 Security & Permissions
 
 - All logs are stored locally; the tracker does not upload log data anywhere.
-- Restrict permissions on files such as `nobtium_logs.json` and `auditTrail.json` (e.g. `chmod 600`).
+- Restrict permissions on files such as `multi_agent_log.json` and `auditTrail.json` (e.g. `chmod 600`).
 - This tool should **not** be used on other users' data without their explicit consent.
 - Add log files to your `.gitignore` so they are not committed to version control.
 

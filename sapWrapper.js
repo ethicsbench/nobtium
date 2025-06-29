@@ -125,28 +125,37 @@ function wrapWithErrorLogging(fn, metadata = {}) {
     try {
       const result = await fn(...args);
       const latency = Date.now() - start;
-      fs.appendFileSync('multi_agent_log.json', JSON.stringify({
-        timestamp: new Date().toISOString(),
-        agent_name: metadata.agent || 'unknown',
-        model: metadata.model,
-        provider: metadata.provider,
-        prompt: args[0],
-        response: result,
-        latency_ms: latency
-      }) + '\n');
-      return result;
-    } catch (error) {
-      fs.appendFileSync('multi_agent_error_log.json', JSON.stringify({
+      const successEntry = {
         timestamp: new Date().toISOString(),
         agent_name: metadata.agent || 'unknown',
         model: metadata.model,
         provider: metadata.provider,
         request_id: metadata.request_id || null,
-        error: error.message
-      }) + '\n');
+        prompt: args[0],
+        response: result,
+        latency_ms: latency,
+      };
+      fs.appendFileSync(
+        'multi_agent_log.json',
+        JSON.stringify(successEntry) + '\n'
+      );
+      return result;
+    } catch (error) {
+      const errorEntry = {
+        timestamp: new Date().toISOString(),
+        agent_name: metadata.agent || 'unknown',
+        model: metadata.model,
+        provider: metadata.provider,
+        request_id: metadata.request_id || null,
+        error: error.message,
+      };
+      fs.appendFileSync(
+        'multi_agent_error_log.json',
+        JSON.stringify(errorEntry) + '\n'
+      );
       throw error;
     }
-  }
+  };
 }
 
 module.exports = {
