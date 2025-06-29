@@ -78,6 +78,15 @@ To view a live metrics table instead of a text summary, run:
 npx sap-analyzer saplog.jsonl --mode live
 ```
 
+For a browser-based dashboard with charts, run:
+
+```bash
+npm run dashboard
+```
+
+Then open [http://localhost:3000](http://localhost:3000) to view flagged threads,
+average response time and a live interaction chart that refreshes every 10s.
+
 ## Features
 
 - **1‑line install** and minimal footprint
