@@ -49,12 +49,61 @@ function computeAvgResponseTime(entries) {
   return diffs.reduce((a, b) => a + b, 0) / diffs.length;
 }
 
+// Load violation log and count entries by type
+function loadViolationCounts() {
+  const vPath = path.join(__dirname, 'violation_log.json');
+  let raw;
+  try {
+    raw = fs.readFileSync(vPath, 'utf8').trim();
+  } catch (err) {
+    return {};
+  }
+  if (!raw) return {};
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (err) {
+    // support JSON lines format
+    try {
+      data = raw.split('\n').filter(Boolean).map(l => JSON.parse(l));
+    } catch {
+      return {};
+    }
+  }
+
+  const counts = {};
+  if (Array.isArray(data)) {
+    // array of violation records
+    data.forEach(v => {
+      if (v && v.type) counts[v.type] = (counts[v.type] || 0) + 1;
+    });
+  } else if (data && typeof data === 'object') {
+    // object keyed by userId with violation counts
+    const typeForCount = c => {
+      if (c === 1) return 'warning';
+      if (c === 2) return 'suspend-24h';
+      if (c === 3) return 'suspend-7d';
+      if (c >= 4) return 'block';
+      return null;
+    };
+    Object.values(data).forEach(entry => {
+      if (!entry || typeof entry.violations !== 'number') return;
+      const t = typeForCount(entry.violations);
+      if (t) counts[t] = (counts[t] || 0) + 1;
+    });
+  }
+  return counts;
+}
+
 function loadMetrics() {
   const logPath = path.join(__dirname, 'saplog.json');
   const entries = readLogFile(logPath);
   const threaded = buildThreads(entries);
   const flagged = analyzeThreads(threaded);
   const avgResponse = computeAvgResponseTime(entries);
+  const violCounts = loadViolationCounts();
+  const violationLabels = Object.keys(violCounts);
+  const violationData = violationLabels.map(l => violCounts[l]);
 
   const freq = {};
   entries.forEach(e => {
@@ -66,7 +115,14 @@ function loadMetrics() {
   const freqLabels = Object.keys(freq).sort();
   const freqCounts = freqLabels.map(l => freq[l]);
 
-  return { flagged, avgResponse, freqLabels, freqCounts };
+  return {
+    flagged,
+    avgResponse,
+    freqLabels,
+    freqCounts,
+    violationLabels,
+    violationData,
+  };
 }
 
 // Serve configuration editor
