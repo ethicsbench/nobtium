@@ -101,3 +101,10 @@ average response time and a live interaction chart that refreshes every 10s.
 
 Happy tracking!
 
+## 🔐 Security & Permissions
+
+- All logs are stored locally; the tracker does not upload log data anywhere.
+- Restrict permissions on files such as `sap_logs.json` and `auditTrail.json` (e.g. `chmod 600`).
+- This tool should **not** be used on other users' data without their explicit consent.
+- Add log files to your `.gitignore` so they are not committed to version control.
+
