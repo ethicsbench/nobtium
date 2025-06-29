@@ -7,8 +7,8 @@ const { ViolationManager } = require('../violation_manager');
 
 test('end-to-end logging and violation handling', async () => {
   const rootDir = path.join(__dirname, '..');
-  const linkPath = path.join(rootDir, 'sap_logs.json');
-  const tmpLog = path.join(os.tmpdir(), `saplog-${Date.now()}.json`);
+  const linkPath = path.join(rootDir, 'nobtium_logs.json');
+  const tmpLog = path.join(os.tmpdir(), `nobtium_log-${Date.now()}.json`);
   fs.writeFileSync(tmpLog, '[]');
   if (fs.existsSync(linkPath)) fs.unlinkSync(linkPath);
   fs.symlinkSync(tmpLog, linkPath);

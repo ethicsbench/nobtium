@@ -96,7 +96,7 @@ function loadViolationCounts() {
 }
 
 function loadMetrics() {
-  const logPath = path.join(__dirname, 'saplog.json');
+  const logPath = path.join(__dirname, 'nobtium_log.json');
   const entries = readLogFile(logPath);
   const threaded = buildThreads(entries);
   const flagged = analyzeThreads(threaded);
@@ -133,7 +133,7 @@ app.get('/config', (req, res) => {
 // Endpoint to fetch current rules
 app.get('/rules', (req, res) => {
   try {
-    const file = fs.readFileSync(path.join(__dirname, 'sap_rules.yaml'), 'utf8');
+    const file = fs.readFileSync(path.join(__dirname, 'nobtium_rules.yaml'), 'utf8');
     const data = yaml.load(file);
     res.json(data);
   } catch (err) {
@@ -145,7 +145,7 @@ app.get('/rules', (req, res) => {
 app.post('/rules', (req, res) => {
   try {
     const yamlText = yaml.dump(req.body);
-    fs.writeFileSync(path.join(__dirname, 'sap_rules.yaml'), yamlText, 'utf8');
+    fs.writeFileSync(path.join(__dirname, 'nobtium_rules.yaml'), yamlText, 'utf8');
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

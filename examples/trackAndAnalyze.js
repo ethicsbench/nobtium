@@ -5,7 +5,7 @@ const path = require('path');
 const { wrap } = require('../sapWrapper');
 const { analyzeLogs } = require('../analyzeLogs');
 
-const logPath = path.join(__dirname, '..', 'sap_logs.json');
+const logPath = path.join(__dirname, '..', 'nobtium_logs.json');
 
 async function example() {
   // start with a clean log file for this demo

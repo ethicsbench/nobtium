@@ -101,16 +101,16 @@ if (require.main === module) {
   const action = vm.addViolation(userId);
   if (action === 'block') {
     console.error(
-      'Access permanently revoked due to repeated violations. See sap_rules.yaml for details.'
+      'Access permanently revoked due to repeated violations. See nobtium_rules.yaml for details.'
     );
     process.exit(1);
   } else if (action === 'suspend-24h' || action === 'suspend-7d') {
     console.warn(
-      `Access suspended for ${action.split('-')[1]}. See sap_rules.yaml for details.`
+      `Access suspended for ${action.split('-')[1]}. See nobtium_rules.yaml for details.`
     );
   } else if (action === 'warning') {
     console.warn(
-      '⚠️ Violation recorded. Please follow usage guidelines. See sap_rules.yaml for details.'
+      '⚠️ Violation recorded. Please follow usage guidelines. See nobtium_rules.yaml for details.'
     );
   }
   const args = process.argv.slice(2);
@@ -124,7 +124,7 @@ if (require.main === module) {
       logArg = args[i];
     }
   }
-  const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'saplog.json');
+  const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
   analyzeLogs(logPath, { mode });
 }
 

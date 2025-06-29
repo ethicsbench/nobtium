@@ -7,14 +7,14 @@ const { wrap } = require('../sapWrapper');
 
 test('session metadata recorded when enabled', async () => {
   const rootDir = path.join(__dirname, '..');
-  const logLink = path.join(rootDir, 'sap_logs.json');
-  const tmpLog = path.join(os.tmpdir(), `saplog-${Date.now()}.json`);
+  const logLink = path.join(rootDir, 'nobtium_logs.json');
+  const tmpLog = path.join(os.tmpdir(), `nobtium_log-${Date.now()}.json`);
   fs.writeFileSync(tmpLog, '[]');
   if (fs.existsSync(logLink)) fs.unlinkSync(logLink);
   fs.symlinkSync(tmpLog, logLink);
 
   // backup and modify rules
-  const rulesPath = path.join(rootDir, 'sap_rules.yaml');
+  const rulesPath = path.join(rootDir, 'nobtium_rules.yaml');
   const original = fs.readFileSync(rulesPath, 'utf8');
   const modified = original.replace('session_logging: false', 'session_logging: true');
   fs.writeFileSync(rulesPath, modified);

@@ -11,7 +11,7 @@
   "description": "One-line protocol to trace and regulate AI communication — a foundation for post-human transparency.",
   "main": "analyzeLogs.js",
   "bin": {
-    "sap-analyzer": "./analyzeLogs.js"
+    "nobtium-analyzer": "./analyzeLogs.js"
   },
   "devDependencies": {
     "jest": "^29.0.0"
@@ -21,7 +21,7 @@
     "dashboard": "node webDashboard.js"
   },
   "keywords": [
-    "sap",
+    "nobtium",
     "audit",
     "ai",
     "logging",

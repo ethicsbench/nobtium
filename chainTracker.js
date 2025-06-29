@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const chainPath = path.join(__dirname, 'sapchain.jsonl');
+const chainPath = path.join(__dirname, 'nobtium_chain.jsonl');
 
 function trackChain(previousUUID, currentUUID) {
   const entry = {
