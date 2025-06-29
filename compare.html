@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Agent Comparison</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
+</head>
+<body class="p-4 font-sans">
+  <div id="app"></div>
+  <script type="text/javascript">
+    const { useState, useEffect } = React;
+
+    function DiffText({ base, text }) {
+      if (!base) return React.createElement('pre', { className: 'whitespace-pre-wrap' }, text);
+      const lib = window.Diff || window.JsDiff;
+      if (!lib) return React.createElement('pre', { className: 'whitespace-pre-wrap' }, text);
+      const parts = lib.diffWords(base, text);
+      return React.createElement('pre', { className: 'whitespace-pre-wrap' },
+        parts.map((p, i) => React.createElement('span', {
+          key: i,
+          className: p.added ? 'bg-green-200' : p.removed ? 'bg-red-200 line-through' : ''
+        }, p.value))
+      );
+    }
+
+    function Dashboard() {
+      const [logs, setLogs] = useState([]);
+      const [agentFilter, setAgentFilter] = useState('');
+      const [modelFilter, setModelFilter] = useState('');
+
+      useEffect(() => {
+        fetch('/api/multi-agent-log')
+          .then(r => r.json())
+          .then(setLogs)
+          .catch(err => console.error('Failed to load logs', err));
+      }, []);
+
+      const agents = Array.from(new Set(logs.map(l => l.agent_name))).sort();
+      const models = Array.from(new Set(logs.map(l => l.model))).sort();
+
+      const filtered = logs.filter(l =>
+        (!agentFilter || l.agent_name === agentFilter) &&
+        (!modelFilter || l.model === modelFilter)
+      );
+
+      const groups = {};
+      filtered.forEach(l => {
+        groups[l.prompt] = groups[l.prompt] || [];
+        groups[l.prompt].push(l);
+      });
+
+      return React.createElement('div', { className: 'space-y-6' },
+        React.createElement('div', { className: 'flex space-x-4 mb-4' },
+          React.createElement('select', {
+            className: 'border px-2 py-1',
+            value: agentFilter,
+            onChange: e => setAgentFilter(e.target.value)
+          },
+            React.createElement('option', { value: '' }, 'All Agents'),
+            ...agents.map(a => React.createElement('option', { key: a, value: a }, a))
+          ),
+          React.createElement('select', {
+            className: 'border px-2 py-1',
+            value: modelFilter,
+            onChange: e => setModelFilter(e.target.value)
+          },
+            React.createElement('option', { value: '' }, 'All Models'),
+            ...models.map(m => React.createElement('option', { key: m, value: m }, m))
+          )
+        ),
+        Object.keys(groups).map(prompt => {
+          const entries = groups[prompt];
+          const base = entries[0]?.response || '';
+          return React.createElement('div', { key: prompt, className: 'border rounded p-4 space-y-4' },
+            React.createElement('div', { className: 'font-semibold' }, prompt),
+            React.createElement('div', { className: 'grid md:grid-cols-2 gap-4' },
+              entries.map((e, idx) => React.createElement('div', { key: idx, className: 'border rounded p-3 space-y-2 bg-gray-50' },
+                React.createElement('div', { className: 'font-medium' }, e.agent_name),
+                React.createElement('div', { className: 'text-sm text-gray-600' }, `Model: ${e.model}`),
+                React.createElement('div', { className: 'text-sm text-gray-600' }, `Latency: ${e.latency_ms} ms`),
+                React.createElement('div', { className: 'text-sm text-gray-600' }, `Cost: $${e.cost_usd}`),
+                React.createElement('div', { className: 'max-h-60 overflow-auto text-sm border-t pt-2' },
+                  React.createElement(DiffText, { base: idx === 0 ? null : base, text: e.response })
+                )
+              ))
+            )
+          );
+        })
+      );
+    }
+
+    ReactDOM.render(React.createElement(Dashboard), document.getElementById('app'));
+  </script>
+</body>
+</html>
