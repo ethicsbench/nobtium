@@ -23,6 +23,10 @@ app.get('/api/summary', (req, res) => {
   }
 });
 
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'react_dashboard.html'));
+});
+
 function start(port = 3001) {
   return app.listen(port, () => {
     console.log(`Server on http://localhost:${port}`);
