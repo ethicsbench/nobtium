@@ -32,10 +32,10 @@
   "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethicsbench/sap-tracker.git"
+    "url": "git+https://github.com/ethicsbench/nobtium.git"
   },
   "bugs": {
-    "url": "https://github.com/ethicsbench/sap-tracker/issues"
+    "url": "https://github.com/ethicsbench/nobtium/issues"
   },
-  "homepage": "https://github.com/ethicsbench/sap-tracker#readme"
+  "homepage": "https://github.com/ethicsbench/nobtium#readme"
 }
