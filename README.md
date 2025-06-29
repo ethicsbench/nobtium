@@ -72,6 +72,12 @@ thread-1:
 
 The analyzer also prints a colorized summary to the console for quick review.
 
+To view a live metrics table instead of a text summary, run:
+
+```bash
+npx sap-analyzer saplog.jsonl --mode live
+```
+
 ## Features
 
 - **1‑line install** and minimal footprint
