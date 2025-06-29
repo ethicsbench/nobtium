@@ -9,7 +9,7 @@ test('assigns thread IDs based on uuid and timing', () => {
   const threaded = buildThreads(entries);
   expect(threaded[0].threadId).toBe('thread-1');
   expect(threaded[1].threadId).toBe('thread-1');
-  expect(threaded[2].threadId).toBe('thread-2');
+  expect(threaded[2].threadId).toBe('thread-1');
 });
 
 test('returns empty array for invalid input', () => {

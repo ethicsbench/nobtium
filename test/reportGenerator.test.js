@@ -7,5 +7,5 @@ test('generates human readable report', () => {
 
 test('returns default message when no flags', () => {
   const res = generateReport({});
-  expect(res).toBe('');
+  expect(res).toBe('No flagged threads.');
 });
