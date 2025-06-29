@@ -29,6 +29,26 @@ const monitored = nobtiumWrapper(openai);
 const result = await monitored.chat("Hello");
 ```
 
+### 2. Enhanced Error Context and Debugging Support
+
+- Appends metadata to errors, including timestamp, model, request ID, and likely causes.
+- Helps developers reproduce and diagnose failures more effectively.
+
+### 3. Cost Tracking and Estimation
+
+- Tracks the number of requests per model and estimates cost based on configurable rates.
+- Supports live aggregation of daily and projected monthly usage summaries.
+
+```yaml
+cost_summary:
+  today_total: "$23.45"
+  breakdown:
+    - model: GPT-4
+      cost: "$18.20"
+    - model: Whisper
+      cost: "$2.00"
+```
+
 ## Wrapping an AI client
 
 Wrap any function that sends a prompt and returns a response. Below is an
