@@ -9,6 +9,10 @@ function getSummaryPath() {
   return process.env.SUMMARY_JSON_PATH || path.join(__dirname, 'summary.json');
 }
 
+function getLogPath() {
+  return process.env.LOG_JSON_PATH || path.join(__dirname, 'multi_agent_log.json');
+}
+
 app.get('/api/summary', (req, res) => {
   const summaryPath = getSummaryPath();
   if (!fs.existsSync(summaryPath)) {
@@ -25,6 +29,27 @@ app.get('/api/summary', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'react_dashboard.html'));
+});
+
+app.get('/compare', (req, res) => {
+  res.sendFile(path.join(__dirname, 'compare.html'));
+});
+
+app.get('/api/multi-agent-log', (req, res) => {
+  const logPath = getLogPath();
+  if (!fs.existsSync(logPath)) {
+    return res.json([]);
+  }
+  const raw = fs.readFileSync(logPath, 'utf8').trim();
+  if (!raw) return res.json([]);
+  const entries = raw.split('\n').filter(Boolean).map(line => {
+    try {
+      return JSON.parse(line);
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+  res.json(entries);
 });
 
 function start(port = 3001) {
