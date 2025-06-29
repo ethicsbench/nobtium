@@ -16,8 +16,22 @@
   "scripts": {
     "test": "jest"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "sap",
+    "audit",
+    "ai",
+    "logging",
+    "tracking"
+  ],
+  "author": "ethicsbench <ethicsbench@gmail.com>",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethicsbench/sap-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ethicsbench/sap-tracker/issues"
+  },
+  "homepage": "https://github.com/ethicsbench/sap-tracker#readme"
 }
