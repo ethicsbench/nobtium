@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const yaml = require('js-yaml');
 const { wrap } = require('../sapWrapper');
 
-test('log entries are signed when enabled', async () => {
+test('log entries are signed and verifiable when enabled', async () => {
   const rootDir = path.join(__dirname, '..');
   const logLink = path.join(rootDir, 'sap_logs.json');
   const tmpLog = path.join(os.tmpdir(), `saplog-${Date.now()}.json`);
@@ -27,17 +27,24 @@ test('log entries are signed when enabled', async () => {
   const dummy = async function dummy() { return 'ok'; };
   const wrapped = wrap(dummy);
   await wrapped();
+  await wrapped();
 
   const logs = JSON.parse(fs.readFileSync(tmpLog, 'utf8'));
-  const entry = logs[0];
-  expect(typeof entry.signature).toBe('string');
-  const { signature, ...data } = entry;
+  expect(logs.length).toBe(2);
+  for (const entry of logs) {
+    expect(typeof entry.signature).toBe('string');
+    const { signature, ...data } = entry;
 
-  const verify = crypto.createVerify('RSA-SHA256');
-  verify.update(JSON.stringify(data));
-  verify.end();
-  const isValid = verify.verify(publicKey.export({ type: 'pkcs1', format: 'pem' }), signature, 'base64');
-  expect(isValid).toBe(true);
+    const verify = crypto.createVerify('RSA-SHA256');
+    verify.update(JSON.stringify(data));
+    verify.end();
+    const isValid = verify.verify(
+      publicKey.export({ type: 'pkcs1', format: 'pem' }),
+      signature,
+      'base64'
+    );
+    expect(isValid).toBe(true);
+  }
 
   fs.writeFileSync(rulesPath, original);
   fs.unlinkSync(logLink);
