@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const yaml = require('js-yaml');
-const { wrap } = require('../sapWrapper');
+const { wrap, verifySignatures } = require('../sapWrapper');
 
 test('log entries are signed and verifiable when enabled', async () => {
   const rootDir = path.join(__dirname, '..');
@@ -20,8 +20,11 @@ test('log entries are signed and verifiable when enabled', async () => {
   cfg.rules.log_signing.enabled = true;
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const keyPath = path.join(os.tmpdir(), `priv-${Date.now()}.pem`);
+  const pubPath = path.join(os.tmpdir(), `pub-${Date.now()}.pem`);
   fs.writeFileSync(keyPath, privateKey.export({ type: 'pkcs1', format: 'pem' }));
+  fs.writeFileSync(pubPath, publicKey.export({ type: 'pkcs1', format: 'pem' }));
   cfg.rules.log_signing.private_key_path = keyPath;
+  cfg.rules.log_signing.public_key_path = pubPath;
   fs.writeFileSync(rulesPath, yaml.dump(cfg));
 
   const dummy = async function dummy() { return 'ok'; };
@@ -33,21 +36,12 @@ test('log entries are signed and verifiable when enabled', async () => {
   expect(logs.length).toBe(2);
   for (const entry of logs) {
     expect(typeof entry.signature).toBe('string');
-    const { signature, ...data } = entry;
-
-    const verify = crypto.createVerify('RSA-SHA256');
-    verify.update(JSON.stringify(data));
-    verify.end();
-    const isValid = verify.verify(
-      publicKey.export({ type: 'pkcs1', format: 'pem' }),
-      signature,
-      'base64'
-    );
-    expect(isValid).toBe(true);
   }
+  expect(verifySignatures()).toBe(true);
 
   fs.writeFileSync(rulesPath, original);
   fs.unlinkSync(logLink);
   fs.unlinkSync(tmpLog);
   fs.unlinkSync(keyPath);
+  fs.unlinkSync(pubPath);
 });
