@@ -1,35 +1,56 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { checkLogsOnce } = require('../alertNotifier');
+function getNotifier() {
+  jest.resetModules();
+  return require('../alertNotifier');
+}
 
-// Helper to create temp file with entries
 function writeTempLog(entries) {
   const tmp = path.join(os.tmpdir(), `log-${Date.now()}.json`);
-  const data = entries.map(e => JSON.stringify(e)).join('\n');
-  fs.writeFileSync(tmp, data + '\n');
+  fs.writeFileSync(tmp, entries.map(e => JSON.stringify(e)).join('\n') + '\n');
   return tmp;
 }
 
-test('prints alert when latency exceeds threshold', async () => {
-  const entry = { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', prompt: 'hi', latency_ms: 5000 };
+test('logs alert when entry contains latency_alert', async () => {
+  const { checkLogsOnce } = getNotifier();
+  const entry = { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', alert: 'latency_alert', prompt: 'hi' };
   const tmp = writeTempLog([entry]);
   const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
   await checkLogsOnce(tmp);
   expect(spy).toHaveBeenCalled();
   const msg = spy.mock.calls[0][0];
   expect(msg).toContain('latency_alert');
-  expect(msg).toContain('bot');
   spy.mockRestore();
   fs.unlinkSync(tmp);
 });
 
-test('no alert for normal latency', async () => {
-  const entry = { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', prompt: 'hi', latency_ms: 1000 };
+test('uses Slack webhook when configured', async () => {
+  const { checkLogsOnce } = getNotifier();
+  const entry = { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', alert: 'cost_alert' };
   const tmp = writeTempLog([entry]);
-  const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  process.env.SLACK_WEBHOOK_URL = 'http://example.com/webhook';
+  global.fetch = jest.fn(() => Promise.resolve({ ok: true }));
   await checkLogsOnce(tmp);
-  expect(spy).not.toHaveBeenCalled();
-  spy.mockRestore();
+  expect(fetch).toHaveBeenCalled();
+  delete process.env.SLACK_WEBHOOK_URL;
+  global.fetch.mockRestore();
   fs.unlinkSync(tmp);
+});
+
+test('debounces repeated alerts for 60 seconds', async () => {
+  const { handleEntry } = getNotifier();
+  const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1);
+  const entry = { agent_name: 'bot', alert: 'cost_alert' };
+  await handleEntry(entry);
+  expect(spy).toHaveBeenCalledTimes(1);
+  nowSpy.mockReturnValue(1001);
+  await handleEntry(entry);
+  expect(spy).toHaveBeenCalledTimes(1);
+  nowSpy.mockReturnValue(61002);
+  await handleEntry(entry);
+  expect(spy).toHaveBeenCalledTimes(2);
+  spy.mockRestore();
+  nowSpy.mockRestore();
 });
