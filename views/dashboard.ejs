@@ -55,5 +55,25 @@
       }
     });
   </script>
+
+  <h2>Violation Types</h2>
+  <canvas id="violationChart" width="600" height="300"></canvas>
+  <script>
+    const vctx = document.getElementById('violationChart').getContext('2d');
+    new Chart(vctx, {
+      type: 'bar',
+      data: {
+        labels: <%- JSON.stringify(violationLabels) %>,
+        datasets: [{
+          label: 'Violations',
+          data: <%- JSON.stringify(violationData) %>,
+          backgroundColor: 'rgba(255, 99, 132, 0.5)'
+        }]
+      },
+      options: {
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  </script>
 </body>
 </html>
