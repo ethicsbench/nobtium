@@ -8,6 +8,8 @@ const { analyzeThreads } = require('./patternAnalyzer');
 const { generateReport } = require('./reportGenerator');
 const { printReport } = require('./logVisualizer');
 const { renderDashboard } = require('./liveDashboard');
+const { ViolationManager } = require('./violation_manager');
+const os = require('os');
 
 function readLogFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8').trim();
@@ -79,6 +81,17 @@ function analyzeLogs(logPath, opts = {}) {
 }
 
 if (require.main === module) {
+  const vm = new ViolationManager();
+  const userId = `${os.hostname()}-${os.userInfo().username}`;
+  const action = vm.addViolation(userId);
+  if (action === 'block') {
+    console.error('Access permanently revoked due to repeated violations.');
+    process.exit(1);
+  } else if (action === 'suspend-24h' || action === 'suspend-7d') {
+    console.warn(`Access suspended for ${action.split('-')[1]}.`);
+  } else if (action === 'warning') {
+    console.warn('⚠️ Violation recorded. Please follow usage guidelines.');
+  }
   const args = process.argv.slice(2);
   let logArg;
   let mode = 'summary';
