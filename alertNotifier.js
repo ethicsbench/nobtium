@@ -91,4 +91,4 @@ async function checkLogsOnce(logPath = 'multi_agent_log.json', errorPath = 'mult
   }
 }
 
-module.exports = { handleEntry, checkLogsOnce, formatMessage, extractAlerts };
+module.exports = { handleEntry, checkLogsOnce, formatMessage, extractAlerts, sendNotification };
