@@ -18,6 +18,19 @@ function shouldIncludeSession() {
   }
 }
 
+function getSigningConfig() {
+  try {
+    const rulesRaw = fs.readFileSync(RULES_PATH, 'utf8');
+    const cfg = yaml.load(rulesRaw);
+    if (cfg && cfg.rules && cfg.rules.log_signing && cfg.rules.log_signing.enabled) {
+      return cfg.rules.log_signing;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 function loadLogs() {
   try {
     const raw = fs.readFileSync(LOG_PATH, 'utf8');
@@ -34,6 +47,19 @@ function loadLogs() {
 function saveLog(entry) {
   const logs = loadLogs();
   const sanitized = sanitizeLogs([entry])[0];
+  const signCfg = getSigningConfig();
+  if (signCfg) {
+    try {
+      const keyPath = path.resolve(__dirname, signCfg.private_key_path);
+      const key = fs.readFileSync(keyPath, 'utf8');
+      const signer = crypto.createSign('RSA-SHA256');
+      signer.update(JSON.stringify(sanitized));
+      signer.end();
+      sanitized.signature = signer.sign(key, 'base64');
+    } catch (err) {
+      console.error('Failed to sign log entry:', err);
+    }
+  }
   logs.push(sanitized);
   try {
     fs.writeFileSync(LOG_PATH, JSON.stringify(logs, null, 2));
