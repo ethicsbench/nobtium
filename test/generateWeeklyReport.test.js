@@ -47,7 +47,8 @@ test('writes summary.json and sends Slack when anomalies exist', () => {
 
   const summaryPath = path.join(path.dirname(outFile), 'summary.json');
   const data = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
-  expect(data.anomalyCount).toBeGreaterThan(0);
+  expect(data.latency_alerts).toBeGreaterThan(0);
+  expect(data.cost_alerts).toBeGreaterThan(0);
   expect(fetch).toHaveBeenCalled();
 
   delete process.env.SLACK_WEBHOOK_URL;
