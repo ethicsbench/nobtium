@@ -10,6 +10,11 @@ rules:
   audit_trail: true                 # keep an internal audit log (auditTrail.json)
   session_logging: false            # include session_id and IP address in logs
 
+  log_signing:
+    enabled: false
+    private_key_path: "keys/private.pem"
+    public_key_path: "keys/public.pem"
+
 user_consent:
   required: true
   confirmation_prompt: true         # require an explicit confirmation prompt or checkbox
