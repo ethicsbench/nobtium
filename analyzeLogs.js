@@ -100,12 +100,18 @@ if (require.main === module) {
   const userId = `${os.hostname()}-${os.userInfo().username}`;
   const action = vm.addViolation(userId);
   if (action === 'block') {
-    console.error('Access permanently revoked due to repeated violations.');
+    console.error(
+      'Access permanently revoked due to repeated violations. See sap_rules.yaml for details.'
+    );
     process.exit(1);
   } else if (action === 'suspend-24h' || action === 'suspend-7d') {
-    console.warn(`Access suspended for ${action.split('-')[1]}.`);
+    console.warn(
+      `Access suspended for ${action.split('-')[1]}. See sap_rules.yaml for details.`
+    );
   } else if (action === 'warning') {
-    console.warn('⚠️ Violation recorded. Please follow usage guidelines.');
+    console.warn(
+      '⚠️ Violation recorded. Please follow usage guidelines. See sap_rules.yaml for details.'
+    );
   }
   const args = process.argv.slice(2);
   let logArg;
