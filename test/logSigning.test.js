@@ -40,6 +40,7 @@ test('logs success and errors with metadata', async () => {
   expect(errors[0].error).toBe('fail');
   expect(errors[0].request_id).toBe('123');
   expect(errors[0].prompt).toBe('bad');
+  expect(typeof errors[0].latency_ms).toBe('number');
 
   fs.unlinkSync(logLink);
   fs.unlinkSync(errLink);
