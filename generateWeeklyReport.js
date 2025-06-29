@@ -49,6 +49,8 @@ function generateWeeklyReport(
   let totalLatency = 0;
   let maxLatency = 0;
   let anomalyCount = 0;
+  let latencyAlertCount = 0;
+  let costAlertCount = 0;
 
   successLogs.forEach(entry => {
     if (entry.agent_name) {
@@ -61,11 +63,17 @@ function generateWeeklyReport(
     if (Number.isFinite(latency)) {
       totalLatency += latency;
       if (latency > maxLatency) maxLatency = latency;
-      if (detectLatencyAnomaly(latency)) anomalyCount++;
+      if (detectLatencyAnomaly(latency)) {
+        anomalyCount++;
+        latencyAlertCount++;
+      }
     }
     const costObj = summarizeCosts([entry]);
     const cost = costObj[entry.model] || 0;
-    if (detectCostAnomaly(cost)) anomalyCount++;
+    if (detectCostAnomaly(cost)) {
+      anomalyCount++;
+      costAlertCount++;
+    }
   });
 
   const avgLatency = successLogs.length ? totalLatency / successLogs.length : 0;
@@ -111,19 +119,16 @@ function generateWeeklyReport(
   fs.writeFileSync(outPath, lines.join('\n'));
 
   const summary = {
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-    totalCalls,
-    successCount,
-    failureCount,
-    totalCost: Number(totalCost.toFixed(2)),
-    anomalyCount,
-    mostUsedAgent: mostUsedAgent || null,
-    averageLatency: Math.round(avgLatency),
-    maxLatency: Math.round(maxLatency),
-    costByModel: costTotals,
-    modelCounts,
-    agentCounts
+    total_calls: totalCalls,
+    success: successCount,
+    failures: failureCount,
+    total_cost_usd: Number(totalCost.toFixed(2)),
+    latency_alerts: latencyAlertCount,
+    cost_alerts: costAlertCount,
+    model_usage: modelCounts,
+    agent_usage: agentCounts,
+    avg_latency_ms: Math.round(avgLatency),
+    max_latency_ms: Math.round(maxLatency)
   };
   const summaryPath = path.join(path.dirname(outPath), 'summary.json');
   fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
