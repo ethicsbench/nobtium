@@ -7,6 +7,7 @@ const { buildThreads } = require('./threadBuilder');
 const { analyzeThreads } = require('./patternAnalyzer');
 const { generateReport } = require('./reportGenerator');
 const { printReport } = require('./logVisualizer');
+const { renderDashboard } = require('./liveDashboard');
 
 function readLogFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8').trim();
@@ -21,7 +22,32 @@ function readLogFile(filePath) {
   }
 }
 
-function analyzeLogs(logPath) {
+function computeAvgResponseTime(entries) {
+  if (!Array.isArray(entries)) return 0;
+  const pairs = {};
+  entries.forEach(e => {
+    if (!e || !e.uuid || !e.timestamp) return;
+    if (!pairs[e.uuid]) pairs[e.uuid] = {};
+    if (e.direction === '>' || e.direction === 'up') {
+      pairs[e.uuid].request = new Date(e.timestamp).getTime();
+    } else if (e.direction === '<' || e.direction === 'down') {
+      if (pairs[e.uuid].request !== undefined) {
+        const diff = new Date(e.timestamp).getTime() - pairs[e.uuid].request;
+        if (!Number.isNaN(diff)) {
+          pairs[e.uuid].diff = diff;
+        }
+      }
+    }
+  });
+  const diffs = Object.values(pairs)
+    .map(p => p.diff)
+    .filter(d => typeof d === 'number');
+  if (diffs.length === 0) return 0;
+  return diffs.reduce((a, b) => a + b, 0) / diffs.length;
+}
+
+function analyzeLogs(logPath, opts = {}) {
+  const mode = opts.mode || 'summary';
   detectDivergence(logPath);
 
   let entries;
@@ -35,18 +61,37 @@ function analyzeLogs(logPath) {
   const threaded = buildThreads(entries);
   const patternResults = analyzeThreads(threaded);
 
-  const report = generateReport(patternResults);
-  if (report) {
-    console.log(report);
-  }
+  if (mode === 'live') {
+    const metrics = {
+      totalInteractions: entries.length,
+      flaggedThreads: Object.values(patternResults).filter(arr => Array.isArray(arr) && arr.length > 0).length,
+      avgResponseTime: computeAvgResponseTime(entries),
+    };
+    console.log(renderDashboard(metrics));
+  } else {
+    const report = generateReport(patternResults);
+    if (report) {
+      console.log(report);
+    }
 
-  printReport(patternResults, { detailed: true });
+    printReport(patternResults, { detailed: true });
+  }
 }
 
 if (require.main === module) {
-  const argPath = process.argv[2];
-  const logPath = argPath ? path.resolve(argPath) : path.join(__dirname, 'saplog.json');
-  analyzeLogs(logPath);
+  const args = process.argv.slice(2);
+  let logArg;
+  let mode = 'summary';
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--mode') {
+      mode = args[i + 1] || 'summary';
+      i++;
+    } else if (!logArg) {
+      logArg = args[i];
+    }
+  }
+  const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'saplog.json');
+  analyzeLogs(logPath, { mode });
 }
 
 module.exports = { analyzeLogs };
