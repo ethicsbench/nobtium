@@ -24,7 +24,7 @@ example using the OpenAI SDK:
 
 ```js
 const { Configuration, OpenAIApi } = require('openai');
-const { sapWrapper } = require('sap-tracker');
+const { wrap } = require('sap-tracker');
 
 const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
 
@@ -36,21 +36,27 @@ async function ask(prompt) {
   return res.data.choices[0].message.content;
 }
 
-const trackedAsk = sapWrapper(ask); // opt‑in logging
+const trackedAsk = wrap(ask); // opt‑in logging
 
 const answer = await trackedAsk('Hello, world!');
 console.log(answer);
 ```
 
-Every call writes a log entry to `saplog.jsonl` in the project directory.
+Every call writes a log entry to `sap_logs.json` in the project directory.
 
 ## Log format
 
-Logs are newline‑separated JSON objects:
+Logs are stored as a JSON array:
 
 ```json
-{"timestamp":"2025-06-29T01:03:59.670Z","uuid":"9018e0ee-d69d-4628-ab93-21c4b57f43a2","direction":">","message":"Hello AI"}
-{"timestamp":"2025-06-29T01:03:59.671Z","uuid":"9018e0ee-d69d-4628-ab93-21c4b57f43a2","direction":"<","message":"Echo: Hello AI"}
+[
+  {
+    "timestamp": "2025-06-29T01:03:59.670Z",
+    "function": "ask",
+    "arguments": "[\"Hello AI\"]",
+    "result": "\"Echo: Hello AI\""
+  }
+]
 ```
 
 You control the log file and can purge it at any time.
@@ -60,7 +66,7 @@ You control the log file and can purge it at any time.
 After collecting logs you can run the CLI to look for anomalies:
 
 ```bash
-npx sap-analyzer saplog.jsonl
+npx sap-analyzer sap_logs.json
 ```
 
 Example output:
@@ -75,7 +81,7 @@ The analyzer also prints a colorized summary to the console for quick review.
 To view a live metrics table instead of a text summary, run:
 
 ```bash
-npx sap-analyzer saplog.jsonl --mode live
+npx sap-analyzer sap_logs.json --mode live
 ```
 
 For a browser-based dashboard with charts, run:
