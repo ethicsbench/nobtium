@@ -151,9 +151,13 @@ function generateWeeklyReport(
   }
 
   if (slackUrl && anomalyCount > 0) {
-    const text = `Weekly report: ${anomalyCount} anomalies detected across ${totalCalls} calls.`;
+    const msg =
+      `[Weekly Report] Calls: ${totalCalls} | ` +
+      `Failures: ${failureCount} | ` +
+      `Cost: $${totalCost.toFixed(2)} | ` +
+      `Alerts: ${anomalyCount}`;
     // fire and forget
-    sendNotification(text);
+    sendNotification(msg);
   }
 
   return outPath;

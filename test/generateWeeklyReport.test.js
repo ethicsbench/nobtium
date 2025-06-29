@@ -50,6 +50,13 @@ test('writes summary.json and sends Slack when anomalies exist', () => {
   expect(data.latency_alerts).toBeGreaterThan(0);
   expect(data.cost_alerts).toBeGreaterThan(0);
   expect(fetch).toHaveBeenCalled();
+  const expectedMsg =
+    `[Weekly Report] Calls: ${data.total_calls} | ` +
+    `Failures: ${data.failures} | ` +
+    `Cost: $${data.total_cost_usd.toFixed(2)} | ` +
+    `Alerts: ${data.latency_alerts + data.cost_alerts}`;
+  const body = JSON.parse(fetch.mock.calls[0][1].body);
+  expect(body.text).toBe(expectedMsg);
 
   delete process.env.SLACK_WEBHOOK_URL;
   global.fetch.mockRestore();
