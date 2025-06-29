@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { summarizeCosts, detectCostAnomaly } = require('./costTracker');
 const { detectLatencyAnomaly } = require('./latencyDetector');
+const { sendNotification } = require('./alertNotifier');
 
 function readJsonLines(filePath) {
   if (!fs.existsSync(filePath)) return [];
@@ -108,6 +109,48 @@ function generateWeeklyReport(
   lines.push(`[Full logs](${path.basename(logPath)})`);
 
   fs.writeFileSync(outPath, lines.join('\n'));
+
+  const summary = {
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    end: new Date().toISOString(),
+    totalCalls,
+    successCount,
+    failureCount,
+    totalCost: Number(totalCost.toFixed(2)),
+    anomalyCount,
+    mostUsedAgent: mostUsedAgent || null,
+    averageLatency: Math.round(avgLatency),
+    maxLatency: Math.round(maxLatency),
+    costByModel: costTotals,
+    modelCounts,
+    agentCounts
+  };
+  const summaryPath = path.join(path.dirname(outPath), 'summary.json');
+  fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
+
+  let slackUrl = process.env.SLACK_WEBHOOK_URL;
+  if (!slackUrl) {
+    try {
+      const envPath = path.join(__dirname, '.env');
+      const envLines = fs.readFileSync(envPath, 'utf8').split('\n');
+      for (const line of envLines) {
+        const m = line.match(/^\s*([^#=]+)\s*=\s*(.*)\s*$/);
+        if (m && m[1] === 'SLACK_WEBHOOK_URL') {
+          slackUrl = m[2];
+          break;
+        }
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  if (slackUrl && anomalyCount > 0) {
+    const text = `Weekly report: ${anomalyCount} anomalies detected across ${totalCalls} calls.`;
+    // fire and forget
+    sendNotification(text);
+  }
+
   return outPath;
 }
 
