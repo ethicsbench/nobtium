@@ -1,13 +1,10 @@
-# nobtium
-
-[![npm version](https://img.shields.io/npm/v/nobtium.svg)](https://www.npmjs.com/package/nobtium)
-[![License](https://img.shields.io/npm/l/nobtium.svg)](LICENSE)
-[![CI](https://img.shields.io/badge/CI-passing-blue)](#)
+# nobium
 
 `nobtium` is a lightweight audit layer for AI conversations. It records prompts
 and responses in a simple JSONL file and offers an offline analyzer to spot
 potential issues such as repeated or abnormal messages. Drop it in or remove it
 with a single line – no lock‑in or heavy dependencies.
+
 
 ## Installation
 
@@ -24,7 +21,9 @@ example using the OpenAI SDK:
 
 ```js
 const { Configuration, OpenAIApi } = require('openai');
+
 const { wrap } = require('nobtium');
+ main
 
 const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
 
