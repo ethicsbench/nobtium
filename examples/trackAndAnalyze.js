@@ -5,14 +5,14 @@ const path = require('path');
 const { wrap } = require('../sapWrapper');
 const { analyzeLogs } = require('../analyzeLogs');
 
-const logPath = path.join(__dirname, '..', 'nobtium_logs.json');
+const logPath = path.join(__dirname, '..', 'multi_agent_log.json');
 
 async function example() {
   // start with a clean log file for this demo
   if (fs.existsSync(logPath)) {
     fs.unlinkSync(logPath);
   }
-  fs.writeFileSync(logPath, '[]');
+  fs.writeFileSync(logPath, '');
 
   async function dummyTask(msg) {
     return `echo:${msg}`;
