@@ -50,6 +50,20 @@ function computeAvgResponseTime(entries) {
 
 function analyzeLogs(logPath, opts = {}) {
   const mode = opts.mode || 'summary';
+
+  const auditPath = opts.auditPath || path.join(__dirname, 'auditTrail.json');
+  const auditEntry = {
+    timestamp: new Date().toISOString(),
+    user: os.userInfo().username,
+    mode,
+    logPath,
+  };
+  try {
+    fs.appendFileSync(auditPath, JSON.stringify(auditEntry) + '\n');
+  } catch (err) {
+    console.error('Failed to write audit trail:', err);
+  }
+
   detectDivergence(logPath);
 
   let entries;
