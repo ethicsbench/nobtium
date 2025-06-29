@@ -13,7 +13,83 @@
     ⚠️ This tool records conversations. Explicit consent is required before use.
   </div>
   <div id="content">
-    <!-- Content goes here -->
+    <h2>Configuration Editor</h2>
+    <form id="configForm"></form>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const res = await fetch('/rules');
+      const config = await res.json();
+      const form = document.getElementById('configForm');
+
+      function addField(path, value, parent) {
+        const label = document.createElement('label');
+        label.textContent = path;
+        const input = document.createElement('input');
+        if (typeof value === 'boolean') {
+          input.type = 'checkbox';
+          input.checked = value;
+        } else if (typeof value === 'number') {
+          input.type = 'number';
+          input.value = value;
+        } else {
+          input.type = 'text';
+          input.value = value;
+        }
+        input.dataset.path = path;
+        label.appendChild(input);
+        parent.appendChild(label);
+        parent.appendChild(document.createElement('br'));
+      }
+
+      function traverse(obj, prefix, parent) {
+        for (const [k, v] of Object.entries(obj)) {
+          const p = prefix ? `${prefix}.${k}` : k;
+          if (v && typeof v === 'object' && !Array.isArray(v)) {
+            const fieldset = document.createElement('fieldset');
+            const legend = document.createElement('legend');
+            legend.textContent = k;
+            fieldset.appendChild(legend);
+            traverse(v, p, fieldset);
+            parent.appendChild(fieldset);
+          } else {
+            addField(p, v, parent);
+          }
+        }
+      }
+
+      traverse(config, '', form);
+
+      const save = document.createElement('button');
+      save.type = 'submit';
+      save.textContent = 'Save';
+      form.appendChild(save);
+
+      function setValue(obj, pathArr, value) {
+        const last = pathArr.pop();
+        const target = pathArr.reduce((o, p) => {
+          if (!o[p]) o[p] = {};
+          return o[p];
+        }, obj);
+        target[last] = value;
+      }
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const inputs = form.querySelectorAll('input[data-path]');
+        inputs.forEach(inp => {
+          const val = inp.type === 'checkbox' ? inp.checked :
+                       inp.type === 'number' ? Number(inp.value) : inp.value;
+          setValue(config, inp.dataset.path.split('.'), val);
+        });
+        await fetch('/rules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+        alert('Configuration saved');
+      });
+    });
+  </script>
 </body>
 </html>

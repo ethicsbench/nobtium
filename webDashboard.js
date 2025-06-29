@@ -2,12 +2,14 @@
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const yaml = require('js-yaml');
 const { buildThreads } = require('./threadBuilder');
 const { analyzeThreads } = require('./patternAnalyzer');
 
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.json());
 
 function readLogFile(filePath) {
   let raw;
@@ -66,6 +68,33 @@ function loadMetrics() {
 
   return { flagged, avgResponse, freqLabels, freqCounts };
 }
+
+// Serve configuration editor
+app.get('/config', (req, res) => {
+  res.sendFile(path.join(__dirname, 'web_ui.html'));
+});
+
+// Endpoint to fetch current rules
+app.get('/rules', (req, res) => {
+  try {
+    const file = fs.readFileSync(path.join(__dirname, 'sap_rules.yaml'), 'utf8');
+    const data = yaml.load(file);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to save updated rules
+app.post('/rules', (req, res) => {
+  try {
+    const yamlText = yaml.dump(req.body);
+    fs.writeFileSync(path.join(__dirname, 'sap_rules.yaml'), yamlText, 'utf8');
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/', (req, res) => {
   const metrics = loadMetrics();
