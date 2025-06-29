@@ -114,3 +114,9 @@ These values can be considered personally identifiable information (PII) and
 therefore require explicit user consent before they are logged. This feature is
 opt‑in and disabled by default.
 
+If you enable `log_signing` in `sap_rules.yaml` (under `rules.log_signing.enabled`),
+each log entry will be signed using the private key specified by
+`private_key_path`. Signatures can then be verified with the corresponding
+public key at `public_key_path` to detect tampering. This capability is
+disabled by default and must be explicitly enabled.
+
