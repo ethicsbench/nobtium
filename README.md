@@ -14,6 +14,21 @@ npm install nobtium
 
 That is all you need to start logging.
 
+## Expected Functional Benefits
+
+The following functional benefits are expected from integrating `nobtium` into AI communication workflows.  
+These benefits aim to enhance transparency, traceability, and operational efficiency without adding complexity.
+
+### 1. Real-Time Communication Visibility
+
+- Automatically logs each AI interaction and optionally opens a live dashboard.
+- Enables visibility into response times, request frequency, and success/failure distribution.
+
+```javascript
+const monitored = nobtiumWrapper(openai);
+const result = await monitored.chat("Hello");
+```
+
 ## Wrapping an AI client
 
 Wrap any function that sends a prompt and returns a response. Below is an
