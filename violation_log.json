@@ -1,0 +1,7 @@
+{
+  "example-user": {
+    "userId": "example-user",
+    "violations": 3,
+    "lastViolation": "2025-06-29T10:00:00Z"
+  }
+}
