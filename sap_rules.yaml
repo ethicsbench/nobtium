@@ -1,0 +1,15 @@
+# SAP Tracker security and privacy rules
+
+rules:
+  storage: "local_file_only"        # logs are kept in local files only (no external transmission)
+  opt_in_required: true             # wrap() must be used or events are not logged
+  pii_masking:
+    enabled: true                   # enable automatic masking of PII
+    threshold_len: 100              # replace strings over 100 characters with [MASKED]
+  startup_warning: true             # display a warning when CLI starts
+  audit_trail: true                 # keep an internal audit log (auditTrail.json)
+
+user_consent:
+  required: true
+  confirmation_prompt: true         # require an explicit confirmation prompt or checkbox
+
