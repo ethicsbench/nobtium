@@ -108,3 +108,9 @@ Happy tracking!
 - This tool should **not** be used on other users' data without their explicit consent.
 - Add log files to your `.gitignore` so they are not committed to version control.
 
+If you enable `session_logging` in `sap_rules.yaml` (under `rules.session_logging`),
+the tracker will also record a `session_id` and `ip_address` with each entry.
+These values can be considered personally identifiable information (PII) and
+therefore require explicit user consent before they are logged. This feature is
+opt‑in and disabled by default.
+
