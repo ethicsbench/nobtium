@@ -61,6 +61,27 @@ function formatTable(rows) {
   return [header, separator, ...lines].join('\n');
 }
 
+/**
+ * Write table rows to a CSV file.
+ * Values containing commas are wrapped in double quotes.
+ * @param {string} filePath Path to the CSV file
+ * @param {Array<Array<string>>} rows Table rows including header
+ */
+function writeCSVReport(filePath, rows) {
+  const escape = value => {
+    const str = String(value);
+    if (str.includes('"')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    if (str.includes(',')) {
+      return `"${str}"`;
+    }
+    return str;
+  };
+  const lines = rows.map(r => r.map(escape).join(','));
+  fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
+}
+
 function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
   const summaries = filterRecent(readSummaries(dir), days);
   const data = aggregate(summaries);
@@ -81,10 +102,15 @@ function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
   });
 
   console.log(formatTable(rows));
+
+  const reportDir = path.join(__dirname, '..', 'reports');
+  if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
+  const outPath = path.join(reportDir, 'weekly_report.csv');
+  writeCSVReport(outPath, rows);
 }
 
 if (require.main === module) {
   generateWeeklyReport();
 }
 
-module.exports = { generateWeeklyReport };
+module.exports = { generateWeeklyReport, writeCSVReport };
