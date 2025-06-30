@@ -42,9 +42,16 @@
       const models = Array.from(new Set(logs.map(l => l.model))).sort();
 
       const crashByAgent = {};
+      const unpercByAgent = {};
       logs.forEach(l => {
-        if (!l || !l.agent_name || !l.crash_summary) return;
-        crashByAgent[l.agent_name] = l.crash_summary;
+        if (!l || !l.agent_name) return;
+        if (l.crash_summary) {
+          crashByAgent[l.agent_name] = l.crash_summary;
+        }
+        const up = l.unperceived_score && l.unperceived_score.total;
+        if (typeof up === 'number') {
+          unpercByAgent[l.agent_name] = up;
+        }
       });
 
       const filtered = logs.filter(l =>
@@ -57,6 +64,13 @@
         groups[l.prompt] = groups[l.prompt] || [];
         groups[l.prompt].push(l);
       });
+
+      const colorForScore = v => {
+        if (typeof v !== 'number') return {};
+        const ratio = Math.max(0, Math.min(1, v / 10));
+        const hue = 240 - 240 * ratio; // 240=blue,0=red
+        return { backgroundColor: `hsl(${hue}, 80%, 85%)` };
+      };
 
       return React.createElement('div', { className: 'space-y-6' },
         React.createElement('div', { className: 'flex space-x-4 mb-4' },
@@ -84,7 +98,8 @@
               React.createElement('th', { className: 'border px-2 py-1' }, 'Normal'),
               React.createElement('th', { className: 'border px-2 py-1' }, 'Warning'),
               React.createElement('th', { className: 'border px-2 py-1' }, 'Critical'),
-              React.createElement('th', { className: 'border px-2 py-1' }, 'Score')
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Score'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Unperceived Score')
             )
           ),
           React.createElement('tbody', null,
@@ -92,12 +107,15 @@
               const cs = crashByAgent[agent] || {};
               const fmt = v => (typeof v === 'number' ? v : '-');
               const score = typeof cs.score === 'number' ? cs.score.toFixed(1) : '-';
+              const upScore = unpercByAgent.hasOwnProperty(agent) ? unpercByAgent[agent] : null;
+              const upDisplay = typeof upScore === 'number' ? upScore.toFixed(1) : '-';
               return React.createElement('tr', { key: agent },
                 React.createElement('td', { className: 'border px-2 py-1' }, agent),
                 React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.normal)),
                 React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.warning)),
                 React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.critical)),
-                React.createElement('td', { className: 'border px-2 py-1 text-right' }, score)
+                React.createElement('td', { className: 'border px-2 py-1 text-right' }, score),
+                React.createElement('td', { className: 'border px-2 py-1 text-right', style: colorForScore(upScore) }, upDisplay)
               );
             })
           )
