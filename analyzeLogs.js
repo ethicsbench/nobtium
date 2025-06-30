@@ -87,6 +87,25 @@ function assignCrashScores(results) {
   return results;
 }
 
+function assignCrashLevels(results) {
+  if (!Array.isArray(results)) return [];
+  results.forEach(r => {
+    const score = r && typeof r.crash_score === 'number' ? r.crash_score : null;
+    if (score === null || score <= 0) {
+      r.crash_level = 'unknown';
+    } else if (score >= 5) {
+      r.crash_level = 'critical';
+    } else if (score >= 3) {
+      r.crash_level = 'warning';
+    } else if (score >= 1) {
+      r.crash_level = 'normal';
+    } else {
+      r.crash_level = 'unknown';
+    }
+  });
+  return results;
+}
+
 function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json')) {
   if (!Array.isArray(logs)) return [];
   const results = [];
@@ -196,6 +215,7 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
   }
 
   assignCrashScores(results);
+  assignCrashLevels(results);
 
   if (outPath) {
     try {
@@ -288,4 +308,4 @@ if (require.main === module) {
   analyzeLogs(logPath, { mode });
 }
 
-module.exports = { analyzeLogs, detectCrashes, assignCrashScores };
+module.exports = { analyzeLogs, detectCrashes, assignCrashScores, assignCrashLevels };
