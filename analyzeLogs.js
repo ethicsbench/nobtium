@@ -227,6 +227,8 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
     },
     { normal: 0, warning: 0, critical: 0, unknown: 0 }
   );
+  summary.score =
+    summary.warning * 1 + summary.critical * 3 + summary.unknown * 0.5;
 
   if (outPath) {
     try {
@@ -337,12 +339,17 @@ if (require.main === module) {
         },
         { normal: 0, warning: 0, critical: 0, unknown: 0 }
       );
+      crashSummary.score =
+        crashSummary.warning * 1 +
+        crashSummary.critical * 3 +
+        crashSummary.unknown * 0.5;
 
       console.log('Crash Summary:');
       console.log(`  - normal   : ${crashSummary.normal}`);
       console.log(`  - warning  : ${crashSummary.warning}`);
       console.log(`  - critical : ${crashSummary.critical}`);
       console.log(`  - unknown  : ${crashSummary.unknown}`);
+      console.log(`Crash Score: ${crashSummary.score}`);
 
       if (crashSummary.critical > 0) {
         console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
