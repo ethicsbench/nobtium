@@ -48,6 +48,146 @@ function computeAvgResponseTime(entries) {
   return diffs.reduce((a, b) => a + b, 0) / diffs.length;
 }
 
+function similarityCheck(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return 0;
+  if (a === b) return 1;
+  const tokensA = a.toLowerCase().split(/\s+/).filter(Boolean);
+  const tokensB = b.toLowerCase().split(/\s+/).filter(Boolean);
+  const setA = new Set(tokensA);
+  const setB = new Set(tokensB);
+  let overlap = 0;
+  setA.forEach(t => {
+    if (setB.has(t)) overlap += 1;
+  });
+  return overlap / Math.max(setA.size, setB.size, 1);
+}
+
+function tokenLengthCheck(entry) {
+  if (!entry) return 0;
+  if (typeof entry.tokens_used === 'number') return entry.tokens_used;
+  const text = entry.response || entry.message || '';
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
+function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json')) {
+  if (!Array.isArray(logs)) return [];
+  const results = [];
+  const repeatCounts = Object.create(null);
+
+  for (let i = 0; i < logs.length; i++) {
+    const entry = logs[i] || {};
+    const prev = logs[i - 1] || {};
+    const agent = entry.agent_name || entry.agent;
+    const model = entry.model;
+    const msg = entry.response || entry.message || '';
+
+    // repetition loop detection
+    const prevMsg = prev.response || prev.message || '';
+    const sameAgent = (prev.agent_name || prev.agent) === agent;
+    const repKey = `${agent}|${msg}`;
+    if (sameAgent && similarityCheck(msg, prevMsg) > 0.9) {
+      repeatCounts[repKey] = (repeatCounts[repKey] || 1) + 1;
+      const currTs = new Date(entry.timestamp || 0).getTime();
+      const prevTs = new Date(prev.timestamp || 0).getTime();
+      if (
+        repeatCounts[repKey] >= 3 &&
+        Number.isFinite(currTs) &&
+        Number.isFinite(prevTs) &&
+        Math.abs(currTs - prevTs) <= 60 * 1000
+      ) {
+        results.push({
+          timestamp: entry.timestamp,
+          agent,
+          model,
+          crash_flag: true,
+          reason: 'repetition_loop',
+          message: `Repeated same output ${repeatCounts[repKey]} times in 1 minute`,
+        });
+        repeatCounts[repKey] = 0;
+      }
+    } else {
+      repeatCounts[repKey] = 1;
+    }
+
+    // semantic conflict detection
+    const prevAgent = prev.agent_name || prev.agent;
+    if (prevAgent && prevAgent !== agent && prevMsg && msg) {
+      const yes = /\b(yes|sure|ok|okay|can|affirm|agree)\b/i;
+      const no = /\b(no|not|cannot|can't|won't|disagree|unable)\b/i;
+      if ((yes.test(prevMsg) && no.test(msg)) || (no.test(prevMsg) && yes.test(msg))) {
+        results.push({
+          timestamp: entry.timestamp,
+          agent,
+          model,
+          crash_flag: true,
+          reason: 'semantic_conflict',
+          message: 'Conflicting response to previous agent',
+        });
+      }
+    }
+
+    // missing or error output
+    if (!msg) {
+      results.push({
+        timestamp: entry.timestamp,
+        agent,
+        model,
+        crash_flag: true,
+        reason: 'missing_output',
+        message: 'No message content',
+      });
+    }
+    if (entry.error || /error|exception/i.test(msg)) {
+      results.push({
+        timestamp: entry.timestamp,
+        agent,
+        model,
+        crash_flag: true,
+        reason: 'error_output',
+        message: 'Error encountered',
+      });
+    }
+
+    // token explosion detection
+    const len = tokenLengthCheck(entry);
+    if (len > 2000) {
+      results.push({
+        timestamp: entry.timestamp,
+        agent,
+        model,
+        crash_flag: true,
+        reason: 'token_explosion',
+        message: `Length ${len}`,
+      });
+    }
+
+    // model mismatch detection
+    if (sameAgent && prev.model && model && prev.model !== model) {
+      const structured = str => /^\s*[\[{]/.test(str || '');
+      if (structured(prevMsg) !== structured(msg)) {
+        results.push({
+          timestamp: entry.timestamp,
+          agent,
+          model,
+          crash_flag: true,
+          reason: 'model_inconsistency',
+          message: 'Model structure mismatch',
+        });
+      }
+    }
+  }
+
+  if (outPath) {
+    try {
+      fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
+    } catch (err) {
+      console.error('Failed to write crash summary:', err);
+    }
+  }
+
+  return results;
+}
+
 function analyzeLogs(logPath, opts = {}) {
   const mode = opts.mode || 'summary';
 
@@ -128,4 +268,4 @@ if (require.main === module) {
   analyzeLogs(logPath, { mode });
 }
 
-module.exports = { analyzeLogs };
+module.exports = { analyzeLogs, detectCrashes };
