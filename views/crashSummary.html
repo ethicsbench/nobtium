@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Crash Summary</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; }
+    #noData { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Crash Summary</h1>
+  <div id="noData" style="display:none;">No crash data available</div>
+  <canvas id="typeChart" width="400" height="300" style="display:none;"></canvas>
+  <canvas id="modelChart" width="400" height="300" style="display:none;margin-top:40px;"></canvas>
+
+  <table id="agentTable" style="display:none;margin-top:40px;">
+    <thead>
+      <tr><th>Agent</th><th>Count</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2 id="latestHeader" style="display:none;">Latest Crashes</h2>
+  <ul id="latestList"></ul>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('../crash_summary.json');
+      if (!res.ok) throw new Error('fetch failed');
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
+
+      const typeCounts = Object.create(null);
+      const modelCounts = Object.create(null);
+      const agentCounts = Object.create(null);
+
+      data.forEach(e => {
+        if (!e) return;
+        typeCounts[e.reason] = (typeCounts[e.reason] || 0) + 1;
+        modelCounts[e.model] = (modelCounts[e.model] || 0) + 1;
+        agentCounts[e.agent] = (agentCounts[e.agent] || 0) + 1;
+      });
+
+      // Pie chart for crash types
+      const typeChart = document.getElementById('typeChart');
+      typeChart.style.display = 'block';
+      new Chart(typeChart.getContext('2d'), {
+        type: 'pie',
+        data: {
+          labels: Object.keys(typeCounts),
+          datasets: [{
+            data: Object.values(typeCounts),
+            backgroundColor: Object.keys(typeCounts).map((_,i)=>`hsl(${i*60},70%,60%)`)
+          }]
+        }
+      });
+
+      // Bar chart for models
+      const modelChart = document.getElementById('modelChart');
+      modelChart.style.display = 'block';
+      new Chart(modelChart.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(modelCounts),
+          datasets: [{
+            label: 'Crashes',
+            data: Object.values(modelCounts),
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+
+      // Agent table
+      const table = document.getElementById('agentTable');
+      const tbody = table.querySelector('tbody');
+      table.style.display = 'table';
+      Object.entries(agentCounts).sort((a,b)=>b[1]-a[1]).forEach(([agent,count])=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${agent}</td><td>${count}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      // Latest logs
+      const list = document.getElementById('latestList');
+      const header = document.getElementById('latestHeader');
+      header.style.display = 'block';
+      const latest = data.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5);
+      latest.forEach(item => {
+        const li = document.createElement('li');
+        const ts = new Date(item.timestamp).toLocaleString();
+        li.textContent = `[${ts}] ${item.agent} (${item.model}) - ${item.reason} - ${item.message}`;
+        list.appendChild(li);
+      });
+
+    } catch(err) {
+      document.getElementById('noData').style.display = 'block';
+    }
+  });
+  </script>
+</body>
+</html>
