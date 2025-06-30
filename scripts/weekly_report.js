@@ -1,3 +1,4 @@
+
 'use strict';
 
 const fs = require('fs');
@@ -5,6 +6,8 @@ const path = require('path');
 
 const BASE_DIR = path.join(__dirname, '..', 'logs', 'crash_summaries');
 const DAYS = 7;
+const DEFAULT_COMPARE_URL =
+  process.env.COMPARE_HTML_URL || 'http://localhost:3000/compare.html';
 
 function readSummaries(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -92,7 +95,83 @@ function writeCSVReport(filePath, rows) {
   fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
 }
 
-function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
+function getWeekNumber(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
+
+async function sendSlackNotification(text) {
+  const url = process.env.SLACK_WEBHOOK_URL;
+  if (!url) {
+    console.warn('SLACK_WEBHOOK_URL not configured');
+    return;
+  }
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+  } catch (err) {
+    console.error('Failed to send Slack notification:', err.message || err);
+  }
+}
+
+async function sendEmailNotification(subject, message, link) {
+  let nodemailer;
+  try {
+    nodemailer = require('nodemailer');
+  } catch (err) {
+    console.error('nodemailer module not found');
+    return;
+  }
+
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_TO } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !EMAIL_TO) {
+    console.warn('SMTP configuration missing');
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT) || 587,
+    secure: false,
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+
+  try {
+    await transporter.sendMail({
+      from: SMTP_USER,
+      to: EMAIL_TO,
+      subject,
+      text: message + (link ? `\n${link}` : '')
+    });
+  } catch (err) {
+    console.error('Failed to send email:', err.message || err);
+  }
+}
+
+async function notifyReport(stats) {
+  const target = (process.env.NOTIFY_TARGET || '').toLowerCase();
+  if (!target) return;
+  const week = getWeekNumber();
+  const link = `${DEFAULT_COMPARE_URL}?week=${week}`;
+  const msg =
+    `Weekly report: ${stats.criticalTotal} anomalies detected.` +
+    ` Worst agent: ${stats.worstAgent}.` +
+    ` ${link}`;
+  if (target === 'slack' || target === 'both') {
+    await sendSlackNotification(msg);
+  }
+  if (target === 'email' || target === 'both') {
+    await sendEmailNotification('Weekly Report', msg, link);
+  }
+}
+
+async function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
   const summaries = filterRecent(readSummaries(dir), days);
   const data = aggregate(summaries);
   const agents = Object.keys(data);
@@ -126,10 +205,27 @@ function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
   if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
   const outPath = path.join(reportDir, 'weekly_report.csv');
   writeCSVReport(outPath, rows);
+
+  const criticalTotal = agents.reduce((s, a) => s + data[a].critical, 0);
+  let worstAgent = agents[0];
+  agents.forEach(a => {
+    if (data[a].critical > data[worstAgent].critical) worstAgent = a;
+  });
+
+  await notifyReport({ criticalTotal, worstAgent });
 }
 
 if (require.main === module) {
-  generateWeeklyReport();
+  generateWeeklyReport().catch(err => {
+    console.error('Failed to generate weekly report:', err);
+  });
 }
 
-module.exports = { generateWeeklyReport, writeCSVReport };
+module.exports = {
+  generateWeeklyReport,
+  writeCSVReport,
+  sendSlackNotification,
+  sendEmailNotification,
+  notifyReport,
+  getWeekNumber
+};
