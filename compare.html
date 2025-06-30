@@ -26,19 +26,67 @@
       );
     }
 
+    function mean(values) {
+      const valid = values.filter(v => typeof v === 'number');
+      if (!valid.length) return 0;
+      const sum = valid.reduce((a, b) => a + b, 0);
+      return sum / valid.length;
+    }
+
+    function std(values, avg) {
+      const valid = values.filter(v => typeof v === 'number');
+      if (!valid.length) return 0;
+      const variance = valid.reduce((acc, v) => acc + Math.pow(v - avg, 2), 0) / valid.length;
+      return Math.sqrt(variance);
+    }
+
+    function detectAnomalies(logs, model = 'isolation_forest') {
+      if (!Array.isArray(logs)) return [];
+      const totals = logs.map(l => l && l.unperceived_score && typeof l.unperceived_score.total === 'number'
+        ? l.unperceived_score.total
+        : null);
+      let flags;
+      switch (model) {
+        case 'one_class_svm':
+          flags = totals.map(t => typeof t === 'number' && t < 0.3);
+          break;
+        case 'autoencoder':
+          flags = totals.map(t => typeof t === 'number' && (t > 0.9 || t < 0.1));
+          break;
+        case 'isolation_forest':
+        default:
+          const avg = mean(totals);
+          const sd = std(totals, avg);
+          const high = avg + 2 * sd;
+          const low = avg - 2 * sd;
+          flags = totals.map(t => typeof t === 'number' && (t > high || t < low));
+          break;
+      }
+      return logs.map((log, idx) => ({
+        ...log,
+        anomaly: Boolean(flags[idx])
+      }));
+    }
+
     function Dashboard() {
+      const [rawLogs, setRawLogs] = useState([]);
       const [logs, setLogs] = useState([]);
       const [agentFilter, setAgentFilter] = useState('');
       const [modelFilter, setModelFilter] = useState('');
+      const [selectedModel, setSelectedModel] = useState('isolation_forest');
       const [showAnomalyOnly, setShowAnomalyOnly] = useState(false);
       const [summary, setSummary] = useState({});
 
       useEffect(() => {
         fetch('/api/multi-agent-log')
           .then(r => r.json())
-          .then(setLogs)
+          .then(setRawLogs)
           .catch(err => console.error('Failed to load logs', err));
       }, []);
+
+      useEffect(() => {
+        setLogs(detectAnomalies(rawLogs, selectedModel));
+      }, [rawLogs, selectedModel]);
 
       useEffect(() => {
         fetch('/api/unperceived-summary')
@@ -105,15 +153,27 @@
             ...models.map(m => React.createElement('option', { key: m, value: m }, m))
           ),
           React.createElement('label', { className: 'flex items-center space-x-1' },
+            React.createElement('span', null, 'Select Anomaly Detection Model:'),
+            React.createElement('select', {
+              className: 'border px-2 py-1',
+              value: selectedModel,
+              onChange: e => setSelectedModel(e.target.value)
+            },
+              React.createElement('option', { value: 'isolation_forest' }, 'isolation_forest'),
+              React.createElement('option', { value: 'autoencoder' }, 'autoencoder'),
+              React.createElement('option', { value: 'one_class_svm' }, 'one_class_svm')
+            )
+          ),
+          React.createElement('label', { className: 'flex items-center space-x-1' },
             React.createElement('input', {
               type: 'checkbox',
               className: 'form-checkbox',
               checked: showAnomalyOnly,
               onChange: e => setShowAnomalyOnly(e.target.checked)
             }),
-            React.createElement('span', null, '異常のみ表示')
+            React.createElement('span', null, 'Show Anomalies Only')
           ),
-          React.createElement('div', { className: 'ml-auto text-sm' }, `異常数 ${anomalyCount} / ${totalCount}`)
+          React.createElement('div', { className: 'ml-auto text-sm' }, `Anomalies ${anomalyCount} / ${totalCount}`)
         ),
         React.createElement('table', { className: 'min-w-full text-sm mb-4 border' },
           React.createElement('thead', null,
@@ -177,6 +237,7 @@
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Latency: ${e.latency_ms} ms`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Cost: $${e.cost_usd}`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Unperc Score: ${e.unperceived_score && typeof e.unperceived_score.total === 'number' ? e.unperceived_score.total : '-'}`),
+                e.anomaly && React.createElement('span', { className: 'text-xs font-semibold text-red-600' }, 'Anomaly'),
                 React.createElement('div', { className: 'max-h-60 overflow-auto text-sm border-t pt-2' },
                   React.createElement(DiffText, { base: idx === 0 ? null : base, text: e.response })
                 )
