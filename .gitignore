@@ -2,6 +2,12 @@ node_modules/
 nobtium_log.jsonl
 package-lock.json
 
+# Log files
+nobtium_log.json
+violation_log.json
+*.log
+logs/
+
 # Ignore private signing keys
 keys/private.pem
 # Do not use a wildcard here so public.pem and docs remain tracked
