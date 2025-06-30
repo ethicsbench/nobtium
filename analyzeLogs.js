@@ -341,6 +341,10 @@ if (require.main === module) {
     console.log(`  - warning  : ${crashSummary.warning}`);
     console.log(`  - critical : ${crashSummary.critical}`);
     console.log(`  - unknown  : ${crashSummary.unknown}`);
+
+    if (crashSummary.critical > 0) {
+      console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
+    }
   }
 }
 
