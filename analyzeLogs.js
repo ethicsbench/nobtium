@@ -232,7 +232,7 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
 
   if (outPath) {
     try {
-      fs.writeFileSync(outPath, JSON.stringify({ summary, details: results }, null, 2));
+      fs.writeFileSync(outPath, JSON.stringify(summary, null, 2));
     } catch (err) {
       console.error('Failed to write crash summary:', err);
     }
@@ -349,7 +349,7 @@ if (require.main === module) {
       console.log(`  - warning  : ${crashSummary.warning}`);
       console.log(`  - critical : ${crashSummary.critical}`);
       console.log(`  - unknown  : ${crashSummary.unknown}`);
-      console.log(`Crash Score: ${crashSummary.score}`);
+      console.log(`Crash Score: ${crashSummary.score.toFixed(1)}`);
 
       if (crashSummary.critical > 0) {
         console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
