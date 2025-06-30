@@ -15,5 +15,16 @@ test('detects repetition loops and writes summary', () => {
   expect(result.length).toBe(1);
   const saved = JSON.parse(fs.readFileSync(out, 'utf8'));
   expect(saved[0].reason).toBe('repetition_loop');
+  expect(typeof saved[0].crash_score).toBe('number');
   fs.unlinkSync(out);
+});
+
+test('assigns correct crash score', () => {
+  const logs = [
+    { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', model: 'gpt', message: 'hi' },
+    { timestamp: '2024-01-01T00:00:10Z', agent_name: 'bot', model: 'gpt', message: 'hi' },
+    { timestamp: '2024-01-01T00:00:20Z', agent_name: 'bot', model: 'gpt', message: 'hi' }
+  ];
+  const result = detectCrashes(logs, null);
+  expect(result[0].crash_score).toBe(1);
 });

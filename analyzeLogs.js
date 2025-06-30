@@ -69,6 +69,24 @@ function tokenLengthCheck(entry) {
   return text.split(/\s+/).filter(Boolean).length;
 }
 
+function assignCrashScores(results) {
+  if (!Array.isArray(results)) return [];
+  const weights = {
+    repetition_loop: 1,
+    semantic_conflict: 2,
+    missing_output: 3,
+    error_output: 4,
+    token_explosion: 5,
+    model_inconsistency: 6,
+  };
+  results.forEach(r => {
+    if (r && r.reason) {
+      r.crash_score = weights[r.reason] || 0;
+    }
+  });
+  return results;
+}
+
 function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json')) {
   if (!Array.isArray(logs)) return [];
   const results = [];
@@ -177,6 +195,8 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
     }
   }
 
+  assignCrashScores(results);
+
   if (outPath) {
     try {
       fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
@@ -268,4 +288,4 @@ if (require.main === module) {
   analyzeLogs(logPath, { mode });
 }
 
-module.exports = { analyzeLogs, detectCrashes };
+module.exports = { analyzeLogs, detectCrashes, assignCrashScores };
