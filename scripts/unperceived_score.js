@@ -55,12 +55,22 @@ function calculateHiddenPatternScore(text) {
   return repeats > 0 ? 1 - repeats / len : 0;
 }
 
+function calculateTotalScore(entropy, symbolDensity, hiddenPatternScore) {
+  return parseFloat(
+    (
+      (1 - entropy / 8 + symbolDensity + hiddenPatternScore) /
+      3
+    ).toFixed(3)
+  );
+}
+
 function analyzeUnperceivedSignals(logs) {
   return logs.map(entry => {
     const text = entry.text || entry.content || '';
     const entropy = calculateEntropy(text);
     const symbolDensity = calculateSymbolDensity(text);
     const patternScore = calculateHiddenPatternScore(text);
+    const total = calculateTotalScore(entropy, symbolDensity, patternScore);
 
     return {
       ...entry,
@@ -68,7 +78,7 @@ function analyzeUnperceivedSignals(logs) {
         entropy_score: entropy,
         symbol_density: symbolDensity,
         hidden_pattern_score: patternScore,
-        total: null,
+        total,
       },
     };
   });
