@@ -43,6 +43,17 @@ Open `compare.html` in a browser to view the comparison dashboard. Use agent or 
 - `scripts/slack_alert.js`: send alerts to Slack
 
 Set `SLACK_WEBHOOK_URL` in `.env` to your webhook URL.
+For weekly reports you can also send email notifications by configuring these variables:
+
+```
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASS
+EMAIL_TO
+NOTIFY_TARGET=slack|email|both
+```
+`COMPARE_HTML_URL` defines the base URL for the comparison dashboard link included in the report.
 
 ## 🧪 Tests
 
