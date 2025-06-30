@@ -19,10 +19,10 @@ cp .env.example .env  # edit if needed
 `scripts/unperceived_score.js` and its helper modules calculate an **unperceived_score** for each log entry.  The score is a weighted mix of several signals:
 
 - `entropy_score`: Shannon entropy of the text
-- `symbol_density`: ratio of non‑alphanumeric symbols
-- `hidden_pattern_score`: detection of repeating sequences or n‑grams
+- `symbol_density`: ratio of non-alphanumeric symbols
+- `hidden_pattern_score`: detection of repeating sequences or n-grams
 - `rhythm_score`: irregular whitespace rhythm (via `whitespaceRhythm.js`)
-- `duplicationRate`/`repeat_score`: message or n‑gram repetition across logs
+- `duplicationRate`/`repeat_score`: message or n-gram repetition across logs
 - `void_score`: semantic void or nonsense content (`semanticVoidScore.js`)
 - `audio_score`: audio anomalies such as ultrasound or silence (see `scripts/audio/`)
 - `visual_score`: edge clustering, text density and color depth when an image is provided
@@ -88,12 +88,12 @@ Open `compare.html` or `react_dashboard.html` directly in a browser. Run `node w
 
 Set `SLACK_WEBHOOK_URL` in `.env` to your webhook URL. For weekly reports you can also send email notifications by configuring these variables:
 
-```
-SMTP_HOST
-SMTP_PORT
-SMTP_USER
-SMTP_PASS
-EMAIL_TO
+```env
+SMTP_HOST=your-smtp-host
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-password
+EMAIL_TO=recipient@example.com
 NOTIFY_TARGET=slack|email|both
 ```
 `COMPARE_HTML_URL` defines the base URL for the comparison dashboard link included in the report.
