@@ -2,7 +2,7 @@
 
 const { calculateUltrasoundScore } = require('./ultrasoundDetector');
 const { calculateAudioEntropyScore } = require('./audioEntropyScore');
-const { calculateSpectralAnomalyScore } = require('./spectralAnomalyScore');
+const { calculateSpectralAnomalyScore } = require('./calculateSpectralAnomalyScore');
 const { detectAudioSyncPattern } = require('./audioSyncPatternDetector');
 const { calculateSilentSignalScore } = require('./silentSignalDetector');
 

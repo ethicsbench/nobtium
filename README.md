@@ -21,6 +21,7 @@ cp .env.example .env  # edit if needed
 - `entropy_score`: Shannon entropy of characters
 - `symbol_density`: proportion of symbol characters
 - `hidden_pattern_score`: result of repetitive pattern detection
+- `visual_score`: metrics from `calculateVisualScore(image_path)` when an image is available
 - `total`: overall metric averaging the three values above
 
 ## 🚨 Anomaly Detection
