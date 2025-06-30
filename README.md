@@ -141,8 +141,38 @@ average response time and a live interaction chart that refreshes every 10s.
 - **1‑line install** and minimal footprint
 - **No lock‑in** – logs are plain JSONL
 - **Opt‑in logging** – wrap only the calls you want to audit
+- ✅ **Crash Score Output**: Outputs each agent’s `crash_score` in both JSON and CSV formats (`analyzeLogs.js`)
+- ✅ **Comparison Dashboard**: Displays crash scores and levels per agent in `compare.html`
+- ✅ **CSV Export**: Outputs `crash_summary.csv` for external analysis
+- ✅ **Weekly Report**: Aggregates and formats the past 7 days of crash summaries (`scripts/weekly_report.js`)
 
 Happy tracking!
+
+## Usage
+
+### 1. Analyze Crash Logs and Export Summary
+
+```bash
+node analyzeLogs.js --input logs/multi-agent-log --output crash_summary.json
+```
+
+Generates both `crash_summary.json` and `crash_summary.csv`
+
+### 2. View Comparison Dashboard
+
+```bash
+open compare.html
+```
+
+Displays a Score column next to the Critical column for each agent
+
+### 3. Generate Weekly Report (Past 7 Days)
+
+```bash
+node scripts/weekly_report.js
+```
+
+Outputs a formatted summary table in the terminal, showing Critical, Warning and Score totals per agent
 
 ## 🔐 Security & Permissions
 
