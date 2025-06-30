@@ -9,6 +9,7 @@ const { generateReport } = require('./reportGenerator');
 const { printReport } = require('./logVisualizer');
 const { renderDashboard } = require('./liveDashboard');
 const { ViolationManager } = require('./violation_manager');
+const notifySlack = require('./notifySlack');
 const os = require('os');
 
 function readLogFile(filePath) {
@@ -285,67 +286,70 @@ function analyzeLogs(logPath, opts = {}) {
 }
 
 if (require.main === module) {
-  console.warn('This tool records conversations. Consent is required before use.');
-  const vm = new ViolationManager();
-  const userId = `${os.hostname()}-${os.userInfo().username}`;
-  const action = vm.addViolation(userId);
-  if (action === 'block') {
-    console.error(
-      'Access permanently revoked due to repeated violations. See nobtium_rules.yaml for details.'
-    );
-    process.exit(1);
-  } else if (action === 'suspend-24h' || action === 'suspend-7d') {
-    console.warn(
-      `Access suspended for ${action.split('-')[1]}. See nobtium_rules.yaml for details.`
-    );
-  } else if (action === 'warning') {
-    console.warn(
-      '⚠️ Violation recorded. Please follow usage guidelines. See nobtium_rules.yaml for details.'
-    );
-  }
-  const args = process.argv.slice(2);
-  let logArg;
-  let mode = 'summary';
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--mode') {
-      mode = args[i + 1] || 'summary';
-      i++;
-    } else if (!logArg) {
-      logArg = args[i];
+  (async () => {
+    console.warn('This tool records conversations. Consent is required before use.');
+    const vm = new ViolationManager();
+    const userId = `${os.hostname()}-${os.userInfo().username}`;
+    const action = vm.addViolation(userId);
+    if (action === 'block') {
+      console.error(
+        'Access permanently revoked due to repeated violations. See nobtium_rules.yaml for details.'
+      );
+      process.exit(1);
+    } else if (action === 'suspend-24h' || action === 'suspend-7d') {
+      console.warn(
+        `Access suspended for ${action.split('-')[1]}. See nobtium_rules.yaml for details.`
+      );
+    } else if (action === 'warning') {
+      console.warn(
+        '⚠️ Violation recorded. Please follow usage guidelines. See nobtium_rules.yaml for details.'
+      );
     }
-  }
-  const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
-  analyzeLogs(logPath, { mode });
-
-  if (mode === 'summary') {
-    let crashEntries = [];
-    try {
-      crashEntries = readLogFile(logPath);
-    } catch (err) {
-      console.error('Failed to read logs for crash summary:', err);
+    const args = process.argv.slice(2);
+    let logArg;
+    let mode = 'summary';
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--mode') {
+        mode = args[i + 1] || 'summary';
+        i++;
+      } else if (!logArg) {
+        logArg = args[i];
+      }
     }
+    const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
+    analyzeLogs(logPath, { mode });
 
-    const crashResults = detectCrashes(crashEntries);
-    const crashSummary = crashResults.reduce(
-      (acc, r) => {
-        const level = r && r.crash_level ? r.crash_level : 'unknown';
-        if (acc[level] === undefined) acc[level] = 0;
-        acc[level] += 1;
-        return acc;
-      },
-      { normal: 0, warning: 0, critical: 0, unknown: 0 }
-    );
+    if (mode === 'summary') {
+      let crashEntries = [];
+      try {
+        crashEntries = readLogFile(logPath);
+      } catch (err) {
+        console.error('Failed to read logs for crash summary:', err);
+      }
 
-    console.log('Crash Summary:');
-    console.log(`  - normal   : ${crashSummary.normal}`);
-    console.log(`  - warning  : ${crashSummary.warning}`);
-    console.log(`  - critical : ${crashSummary.critical}`);
-    console.log(`  - unknown  : ${crashSummary.unknown}`);
+      const crashResults = detectCrashes(crashEntries);
+      const crashSummary = crashResults.reduce(
+        (acc, r) => {
+          const level = r && r.crash_level ? r.crash_level : 'unknown';
+          if (acc[level] === undefined) acc[level] = 0;
+          acc[level] += 1;
+          return acc;
+        },
+        { normal: 0, warning: 0, critical: 0, unknown: 0 }
+      );
 
-    if (crashSummary.critical > 0) {
-      console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
+      console.log('Crash Summary:');
+      console.log(`  - normal   : ${crashSummary.normal}`);
+      console.log(`  - warning  : ${crashSummary.warning}`);
+      console.log(`  - critical : ${crashSummary.critical}`);
+      console.log(`  - unknown  : ${crashSummary.unknown}`);
+
+      if (crashSummary.critical > 0) {
+        console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
+        await notifySlack(`CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
+      }
     }
-  }
+  })();
 }
 
 module.exports = { analyzeLogs, detectCrashes, assignCrashScores, assignCrashLevels };
