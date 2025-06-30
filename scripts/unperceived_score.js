@@ -55,13 +55,40 @@ function calculateHiddenPatternScore(text) {
   return repeats > 0 ? 1 - repeats / len : 0;
 }
 
-function calculateTotalScore(entropy, symbolDensity, hiddenPatternScore) {
-  return parseFloat(
-    (
-      (1 - entropy / 8 + symbolDensity + hiddenPatternScore) /
-      3
-    ).toFixed(3)
-  );
+const DEFAULT_WEIGHTS = {
+  entropy: 0.4,
+  symbolDensity: 0.2,
+  rhythm: 0.15,
+  ngram: 0.15,
+  void: 0.1,
+};
+
+function calculateTotalScore(
+  entropy,
+  symbolDensity,
+  hiddenPatternScore = 0,
+  rhythm_score = 0,
+  repeat_score,
+  void_score = 0,
+  duplicationRate,
+  weights = DEFAULT_WEIGHTS
+) {
+  const w = { ...DEFAULT_WEIGHTS, ...weights };
+  const ngramScore =
+    duplicationRate !== undefined && duplicationRate !== null
+      ? duplicationRate
+      : repeat_score !== undefined && repeat_score !== null
+      ? repeat_score
+      : hiddenPatternScore;
+
+  const total =
+    w.entropy * (1 - (entropy || 0) / 8) +
+    w.symbolDensity * (symbolDensity || 0) +
+    w.rhythm * (rhythm_score || 0) +
+    w.ngram * (ngramScore || 0) +
+    w.void * (void_score || 0);
+
+  return parseFloat(total.toFixed(3));
 }
 
 function analyzeUnperceivedSignals(logs) {
@@ -70,7 +97,21 @@ function analyzeUnperceivedSignals(logs) {
     const entropy = calculateEntropy(text);
     const symbolDensity = calculateSymbolDensity(text);
     const patternScore = calculateHiddenPatternScore(text);
-    const total = calculateTotalScore(entropy, symbolDensity, patternScore);
+
+    const rhythm = entry.rhythm_score ?? 0;
+    const repeat = entry.repeat_score;
+    const voidScore = entry.void_score ?? 0;
+    const dupRate = entry.duplicationRate;
+
+    const total = calculateTotalScore(
+      entropy,
+      symbolDensity,
+      patternScore,
+      rhythm,
+      repeat,
+      voidScore,
+      dupRate
+    );
 
     return {
       ...entry,
