@@ -107,6 +107,20 @@ function assignCrashLevels(results) {
   return results;
 }
 
+function writeCsvSummary(outPath, summary) {
+  const csvLines = [
+    'level,count',
+    `normal,${summary.normal || 0}`,
+    `warning,${summary.warning || 0}`,
+    `critical,${summary.critical || 0}`,
+    `unknown,${summary.unknown || 0}`,
+    `score,${summary.score != null ? summary.score.toFixed(1) : ''}`
+  ];
+  const csvContent = csvLines.join('\n');
+  const csvPath = outPath.replace(/\.json$/, '.csv');
+  fs.writeFileSync(csvPath, csvContent, 'utf-8');
+}
+
 function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json')) {
   if (!Array.isArray(logs)) return [];
   const results = [];
@@ -233,6 +247,7 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
   if (outPath) {
     try {
       fs.writeFileSync(outPath, JSON.stringify(summary, null, 2));
+      writeCsvSummary(outPath, summary);
     } catch (err) {
       console.error('Failed to write crash summary:', err);
     }
