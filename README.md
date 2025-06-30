@@ -60,6 +60,55 @@ NOTIFY_TARGET=slack|email|both
 ```
 `COMPARE_HTML_URL` defines the base URL for the comparison dashboard link included in the report.
 
+## 💻 CLI Usage
+
+`cli.js` provides utilities to encrypt or decrypt the log file and to verify
+log signatures.
+
+### Encrypt logs
+
+```bash
+node cli.js --encrypt
+```
+
+This reads `nobtium_logs.json` and writes the encrypted output to
+`nobtium_logs.enc`.
+
+### Decrypt logs
+
+```bash
+node cli.js --decrypt
+```
+
+Prints the decrypted contents of `nobtium_logs.enc` to the console.
+
+### Verify signatures
+
+```bash
+node cli.js --verify
+```
+
+Checks each entry in `nobtium_logs.json` using the public key configured in
+`nobtium_rules.yaml`.
+
+#### Sample signing keys
+
+```bash
+mkdir -p keys
+openssl genrsa -out keys/private.pem 2048
+openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+```
+
+#### `nobtium_rules.yaml` example
+
+```yaml
+rules:
+  log_signing:
+    enabled: true
+    private_key_path: "keys/private.pem"
+    public_key_path: "keys/public.pem"
+```
+
 ## 🧪 Tests
 
 ```bash
