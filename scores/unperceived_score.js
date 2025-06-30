@@ -1,5 +1,12 @@
 'use strict';
 
+// \u8a2d\u5b9a\u5024\uff08\u5fc5\u8981\u306b\u5fdc\u3058\u3066\u8abf\u6574\u53ef\u80fd\uff09
+const config = {
+  max_token_length: 60,
+  min_token_count: 2,
+  max_token_count: 100,
+};
+
 function structuralAnomaly(text) {
   if (typeof text !== 'string') {
     return 0;
