@@ -61,6 +61,7 @@ const DEFAULT_WEIGHTS = {
   rhythm: 0.15,
   ngram: 0.15,
   void: 0.1,
+  audio: 0.1,
 };
 
 function calculateTotalScore(
@@ -71,6 +72,7 @@ function calculateTotalScore(
   repeat_score,
   void_score = 0,
   duplicationRate,
+  audio_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -86,7 +88,8 @@ function calculateTotalScore(
     w.symbolDensity * (symbolDensity || 0) +
     w.rhythm * (rhythm_score || 0) +
     w.ngram * (ngramScore || 0) +
-    w.void * (void_score || 0);
+    w.void * (void_score || 0) +
+    w.audio * (audio_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -102,6 +105,7 @@ function analyzeUnperceivedSignals(logs) {
     const repeat = entry.repeat_score;
     const voidScore = entry.void_score ?? 0;
     const dupRate = entry.duplicationRate;
+    const audio = entry.audio_score ?? 0;
 
     const total = calculateTotalScore(
       entropy,
@@ -110,7 +114,8 @@ function analyzeUnperceivedSignals(logs) {
       rhythm,
       repeat,
       voidScore,
-      dupRate
+      dupRate,
+      audio
     );
 
     return {
