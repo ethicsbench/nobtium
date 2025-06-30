@@ -14,8 +14,11 @@ test('detects repetition loops and writes summary', () => {
   expect(Array.isArray(result)).toBe(true);
   expect(result.length).toBe(1);
   const saved = JSON.parse(fs.readFileSync(out, 'utf8'));
-  expect(saved[0].reason).toBe('repetition_loop');
-  expect(typeof saved[0].crash_score).toBe('number');
+  expect(saved.summary.normal).toBe(1);
+  expect(saved.summary.critical).toBe(0);
+  expect(Array.isArray(saved.details)).toBe(true);
+  expect(saved.details[0].reason).toBe('repetition_loop');
+  expect(typeof saved.details[0].crash_score).toBe('number');
   fs.unlinkSync(out);
 });
 
@@ -37,9 +40,15 @@ test('assigns crash level classification', () => {
     { timestamp: '2024-01-01T00:01:00Z', agent_name: 'bot2', model: 'gpt', message: '' },
     { timestamp: '2024-01-01T00:02:00Z', agent_name: 'bot3', model: 'gpt', message: 'a', tokens_used: 2001 }
   ];
-  const result = detectCrashes(logs, null);
+  const out = path.join(os.tmpdir(), `crash-${Date.now()}.json`);
+  const result = detectCrashes(logs, out);
   const byReason = Object.fromEntries(result.map(r => [r.reason, r]));
   expect(byReason.repetition_loop.crash_level).toBe('normal');
   expect(byReason.missing_output.crash_level).toBe('warning');
   expect(byReason.token_explosion.crash_level).toBe('critical');
+  const saved = JSON.parse(fs.readFileSync(out, 'utf8'));
+  expect(saved.summary.normal).toBe(1);
+  expect(saved.summary.warning).toBe(1);
+  expect(saved.summary.critical).toBe(1);
+  fs.unlinkSync(out);
 });

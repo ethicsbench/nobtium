@@ -217,9 +217,19 @@ function detectCrashes(logs, outPath = path.join(__dirname, 'crash_summary.json'
   assignCrashScores(results);
   assignCrashLevels(results);
 
+  const summary = results.reduce(
+    (acc, r) => {
+      const level = r && r.crash_level ? r.crash_level : 'unknown';
+      if (acc[level] === undefined) acc[level] = 0;
+      acc[level] += 1;
+      return acc;
+    },
+    { normal: 0, warning: 0, critical: 0, unknown: 0 }
+  );
+
   if (outPath) {
     try {
-      fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
+      fs.writeFileSync(outPath, JSON.stringify({ summary, details: results }, null, 2));
     } catch (err) {
       console.error('Failed to write crash summary:', err);
     }
