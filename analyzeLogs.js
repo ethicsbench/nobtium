@@ -316,6 +316,32 @@ if (require.main === module) {
   }
   const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
   analyzeLogs(logPath, { mode });
+
+  if (mode === 'summary') {
+    let crashEntries = [];
+    try {
+      crashEntries = readLogFile(logPath);
+    } catch (err) {
+      console.error('Failed to read logs for crash summary:', err);
+    }
+
+    const crashResults = detectCrashes(crashEntries);
+    const crashSummary = crashResults.reduce(
+      (acc, r) => {
+        const level = r && r.crash_level ? r.crash_level : 'unknown';
+        if (acc[level] === undefined) acc[level] = 0;
+        acc[level] += 1;
+        return acc;
+      },
+      { normal: 0, warning: 0, critical: 0, unknown: 0 }
+    );
+
+    console.log('Crash Summary:');
+    console.log(`  - normal   : ${crashSummary.normal}`);
+    console.log(`  - warning  : ${crashSummary.warning}`);
+    console.log(`  - critical : ${crashSummary.critical}`);
+    console.log(`  - unknown  : ${crashSummary.unknown}`);
+  }
 }
 
 module.exports = { analyzeLogs, detectCrashes, assignCrashScores, assignCrashLevels };
