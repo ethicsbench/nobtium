@@ -2,6 +2,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { getUnperceivedSummary } = require('./scripts/unperceived_api');
 
 const app = express();
 
@@ -50,6 +51,15 @@ app.get('/api/multi-agent-log', (req, res) => {
     }
   }).filter(Boolean);
   res.json(entries);
+});
+
+app.get('/api/unperceived-summary', (req, res) => {
+  try {
+    const summary = getUnperceivedSummary(getLogPath());
+    res.json(summary);
+  } catch {
+    res.status(500).json({ error: 'Failed to compute summary' });
+  }
 });
 
 function start(port = 3001) {

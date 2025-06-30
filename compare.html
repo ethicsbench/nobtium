@@ -30,6 +30,7 @@
       const [logs, setLogs] = useState([]);
       const [agentFilter, setAgentFilter] = useState('');
       const [modelFilter, setModelFilter] = useState('');
+      const [summary, setSummary] = useState({});
 
       useEffect(() => {
         fetch('/api/multi-agent-log')
@@ -38,8 +39,16 @@
           .catch(err => console.error('Failed to load logs', err));
       }, []);
 
+      useEffect(() => {
+        fetch('/api/unperceived-summary')
+          .then(r => r.json())
+          .then(setSummary)
+          .catch(err => console.error('Failed to load unperceived summary', err));
+      }, []);
+
       const agents = Array.from(new Set(logs.map(l => l.agent_name))).sort();
       const models = Array.from(new Set(logs.map(l => l.model))).sort();
+      const summaryAgents = Array.from(new Set([...agents, ...Object.keys(summary)])).sort();
 
       const crashByAgent = {};
       const unpercByAgent = {};
@@ -89,6 +98,24 @@
           },
             React.createElement('option', { value: '' }, 'All Models'),
             ...models.map(m => React.createElement('option', { key: m, value: m }, m))
+          )
+        ),
+        React.createElement('table', { className: 'min-w-full text-sm mb-4 border' },
+          React.createElement('thead', null,
+            React.createElement('tr', null,
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Agent Name'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Unperceived Score')
+            )
+          ),
+          React.createElement('tbody', null,
+            summaryAgents.map(agent => {
+              const val = summary.hasOwnProperty(agent) ? summary[agent] : null;
+              const display = typeof val === 'number' ? val.toFixed(2) : '--';
+              return React.createElement('tr', { key: agent },
+                React.createElement('td', { className: 'border px-2 py-1' }, agent),
+                React.createElement('td', { className: 'border px-2 py-1 text-right', style: colorForScore(val) }, display)
+              );
+            })
           )
         ),
         React.createElement('table', { className: 'min-w-full text-sm mb-4 border' },
