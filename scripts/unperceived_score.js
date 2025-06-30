@@ -94,8 +94,10 @@ function calculateTotalScore(
   return parseFloat(total.toFixed(3));
 }
 
-function analyzeUnperceivedSignals(logs) {
-  return logs.map(entry => {
+const { calculateVisualScore } = require('./vision/calculateVisualScore');
+
+async function analyzeUnperceivedSignals(logs) {
+  const results = await Promise.all(logs.map(async entry => {
     const text = entry.text || entry.content || '';
     const entropy = calculateEntropy(text);
     const symbolDensity = calculateSymbolDensity(text);
@@ -118,16 +120,33 @@ function analyzeUnperceivedSignals(logs) {
       audio
     );
 
+    let visualScore;
+    if (entry.image_path) {
+      try {
+        visualScore = await calculateVisualScore(entry.image_path);
+      } catch (_) {
+        visualScore = null;
+      }
+    }
+
+    const unperceived = {
+      entropy_score: entropy,
+      symbol_density: symbolDensity,
+      hidden_pattern_score: patternScore,
+      total,
+    };
+
+    if (visualScore) {
+      unperceived.visual_score = visualScore;
+    }
+
     return {
       ...entry,
-      unperceived_score: {
-        entropy_score: entropy,
-        symbol_density: symbolDensity,
-        hidden_pattern_score: patternScore,
-        total,
-      },
+      unperceived_score: unperceived,
     };
-  });
+  }));
+
+  return results;
 }
 
 module.exports = {
