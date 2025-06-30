@@ -29,16 +29,25 @@ function calculateEntropy(text) {
   return entropy;
 }
 
+function calculateSymbolDensity(text) {
+  if (typeof text !== 'string' || text.length === 0) return 0;
+
+  const symbolRegex = /[^a-zA-Z0-9\s]/g;
+  const symbols = (text.match(symbolRegex) || []).length;
+  return symbols / text.length;
+}
+
 function analyzeUnperceivedSignals(logs) {
   return logs.map(entry => {
     const text = entry.text || entry.content || '';
     const entropy = calculateEntropy(text);
+    const symbolDensity = calculateSymbolDensity(text);
 
     return {
       ...entry,
       unperceived_score: {
         entropy_score: entropy,
-        symbol_density: null,
+        symbol_density: symbolDensity,
         hidden_pattern_score: null,
         total: null,
       },
