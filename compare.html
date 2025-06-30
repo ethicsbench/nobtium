@@ -41,6 +41,12 @@
       const agents = Array.from(new Set(logs.map(l => l.agent_name))).sort();
       const models = Array.from(new Set(logs.map(l => l.model))).sort();
 
+      const crashByAgent = {};
+      logs.forEach(l => {
+        if (!l || !l.agent_name || !l.crash_summary) return;
+        crashByAgent[l.agent_name] = l.crash_summary;
+      });
+
       const filtered = logs.filter(l =>
         (!agentFilter || l.agent_name === agentFilter) &&
         (!modelFilter || l.model === modelFilter)
@@ -69,6 +75,31 @@
           },
             React.createElement('option', { value: '' }, 'All Models'),
             ...models.map(m => React.createElement('option', { key: m, value: m }, m))
+          )
+        ),
+        React.createElement('table', { className: 'min-w-full text-sm mb-4 border' },
+          React.createElement('thead', null,
+            React.createElement('tr', null,
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Agent'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Normal'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Warning'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Critical'),
+              React.createElement('th', { className: 'border px-2 py-1' }, 'Score')
+            )
+          ),
+          React.createElement('tbody', null,
+            Object.keys(crashByAgent).sort().map(agent => {
+              const cs = crashByAgent[agent] || {};
+              const fmt = v => (typeof v === 'number' ? v : '-');
+              const score = typeof cs.score === 'number' ? cs.score.toFixed(1) : '-';
+              return React.createElement('tr', { key: agent },
+                React.createElement('td', { className: 'border px-2 py-1' }, agent),
+                React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.normal)),
+                React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.warning)),
+                React.createElement('td', { className: 'border px-2 py-1 text-right' }, fmt(cs.critical)),
+                React.createElement('td', { className: 'border px-2 py-1 text-right' }, score)
+              );
+            })
           )
         ),
         Object.keys(groups).map(prompt => {
