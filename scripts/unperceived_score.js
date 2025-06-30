@@ -2,7 +2,7 @@
 
 /**
  * unperceived_score.js
- * 
+ *
  * This module computes unperceived scores from log data,
  * using experimental signal detection techniques such as:
  * - Low-entropy detection
@@ -10,17 +10,38 @@
  * - Hidden pattern frequency
  */
 
+function calculateEntropy(text) {
+  if (typeof text !== 'string' || text.length === 0) return 0;
+
+  const freq = {};
+  for (const char of text) {
+    freq[char] = (freq[char] || 0) + 1;
+  }
+
+  const len = text.length;
+  let entropy = 0;
+
+  for (const char in freq) {
+    const p = freq[char] / len;
+    entropy -= p * Math.log2(p);
+  }
+
+  return entropy;
+}
+
 function analyzeUnperceivedSignals(logs) {
-  // TODO: implement detection logic
   return logs.map(entry => {
+    const text = entry.text || entry.content || '';
+    const entropy = calculateEntropy(text);
+
     return {
       ...entry,
       unperceived_score: {
-        total: null, // placeholder
-        entropy_score: null,
+        entropy_score: entropy,
         symbol_density: null,
-        hidden_pattern_score: null
-      }
+        hidden_pattern_score: null,
+        total: null,
+      },
     };
   });
 }
