@@ -28,3 +28,18 @@ test('assigns correct crash score', () => {
   const result = detectCrashes(logs, null);
   expect(result[0].crash_score).toBe(1);
 });
+
+test('assigns crash level classification', () => {
+  const logs = [
+    { timestamp: '2024-01-01T00:00:00Z', agent_name: 'bot', model: 'gpt', message: 'hi' },
+    { timestamp: '2024-01-01T00:00:10Z', agent_name: 'bot', model: 'gpt', message: 'hi' },
+    { timestamp: '2024-01-01T00:00:20Z', agent_name: 'bot', model: 'gpt', message: 'hi' },
+    { timestamp: '2024-01-01T00:01:00Z', agent_name: 'bot2', model: 'gpt', message: '' },
+    { timestamp: '2024-01-01T00:02:00Z', agent_name: 'bot3', model: 'gpt', message: 'a', tokens_used: 2001 }
+  ];
+  const result = detectCrashes(logs, null);
+  const byReason = Object.fromEntries(result.map(r => [r.reason, r]));
+  expect(byReason.repetition_loop.crash_level).toBe('normal');
+  expect(byReason.missing_output.crash_level).toBe('warning');
+  expect(byReason.token_explosion.crash_level).toBe('critical');
+});
