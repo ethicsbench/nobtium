@@ -3,97 +3,84 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASE_DIR = path.join(__dirname, '..', 'logs', 'multi-agent-log');
+const BASE_DIR = path.join(__dirname, '..', 'logs', 'crash_summaries');
 const DAYS = 7;
 
-function findCrashSummaries(dir) {
-  const results = [];
-  if (!fs.existsSync(dir)) return results;
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...findCrashSummaries(p));
-    } else if (entry.isFile() && entry.name === 'crash_summary.json') {
-      results.push(p);
+function readSummaries(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter(f => f.endsWith('.json'))
+    .map(f => {
+      try {
+        const txt = fs.readFileSync(path.join(dir, f), 'utf8');
+        return JSON.parse(txt);
+      } catch (_) {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function filterRecent(entries, days) {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return entries.filter(e => {
+    const ts = Date.parse(e.date);
+    return Number.isFinite(ts) && ts >= cutoff;
+  });
+}
+
+function aggregate(entries) {
+  const agents = {};
+  entries.forEach(e => {
+    const agent = e.agent || 'unknown';
+    if (!agents[agent]) {
+      agents[agent] = { total: 0, critical: 0, warning: 0, scoreSum: 0, count: 0 };
     }
-  }
-  return results;
-}
-
-function getAgentName(filePath) {
-  const rel = path.relative(BASE_DIR, filePath);
-  const parts = rel.split(path.sep);
-  return parts[0] || 'unknown';
-}
-
-function isRecent(filePath, days) {
-  try {
-    const stat = fs.statSync(filePath);
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    return stat.mtimeMs >= cutoff;
-  } catch (_) {
-    return false;
-  }
-}
-
-function readSummary(filePath) {
-  try {
-    const txt = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(txt);
-  } catch (_) {
-    return null;
-  }
+    agents[agent].total += Number(e.total) || 0;
+    agents[agent].critical += Number(e.critical) || 0;
+    agents[agent].warning += Number(e.warning) || 0;
+    if (typeof e.score === 'number' && !Number.isNaN(e.score)) {
+      agents[agent].scoreSum += e.score;
+      agents[agent].count += 1;
+    }
+  });
+  return agents;
 }
 
 function formatTable(rows) {
   if (!rows.length) return '';
-  const widths = rows[0].map((_, i) =>
-    Math.max(...rows.map(r => String(r[i]).length))
+  const widths = rows[0].map((_, i) => Math.max(...rows.map(r => String(r[i]).length)));
+  const header =
+    '| ' + rows[0].map((v, i) => String(v).padEnd(widths[i])).join(' | ') + ' |';
+  const separator =
+    '|' + widths.map(w => '-'.repeat(w + 2)).join('|') + '|';
+  const lines = rows.slice(1).map(r =>
+    '| ' + r.map((v, i) => String(v).padEnd(widths[i])).join(' | ') + ' |'
   );
-  const lines = rows.map((row, idx) => {
-    const padded = row.map((val, i) => String(val).padEnd(widths[i]));
-    const line = padded.join('  ');
-    if (idx === 0) {
-      const separator = widths.map(w => '-'.repeat(w)).join('  ');
-      return line + '\n' + separator;
-    }
-    return line;
-  });
-  return lines.join('\n');
+  return [header, separator, ...lines].join('\n');
 }
 
-function generateWeeklyReport(baseDir = BASE_DIR, days = DAYS) {
-  const files = findCrashSummaries(baseDir).filter(f => isRecent(f, days));
-  const agents = {};
-  for (const file of files) {
-    const summary = readSummary(file);
-    if (!summary) continue;
-    const agent = getAgentName(file);
-    if (!agents[agent]) {
-      agents[agent] = { critical: 0, warning: 0, scoreSum: 0, scoreCount: 0 };
-    }
-    agents[agent].critical += Number(summary.critical) || 0;
-    agents[agent].warning += Number(summary.warning) || 0;
-    if (typeof summary.score === 'number' && !Number.isNaN(summary.score)) {
-      agents[agent].scoreSum += summary.score;
-      agents[agent].scoreCount += 1;
-    }
+function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
+  const summaries = filterRecent(readSummaries(dir), days);
+  const data = aggregate(summaries);
+  const agents = Object.keys(data);
+
+  if (!agents.length) {
+    console.log(`No crash summaries in the past ${days} days.`);
+    return;
   }
 
-  const rows = [['Agent', 'Critical', 'Warnings', 'Score']];
-  Object.keys(agents).sort().forEach(agent => {
-    const data = agents[agent];
-    const score = data.scoreCount ? (data.scoreSum / data.scoreCount).toFixed(1) : 'N/A';
-    rows.push([agent, String(data.critical), String(data.warning), score]);
+  const rows = [['Agent', 'Total', 'Critical', 'Warning', 'Avg. Score']];
+  agents.sort().forEach(agent => {
+    const info = data[agent];
+    const avg = info.count ? Math.round(info.scoreSum / info.count) : 'N/A';
+    let critical = String(info.critical);
+    if (info.critical > 5) critical += ' \uD83D\uDD25';
+    rows.push([agent, String(info.total), critical, String(info.warning), String(avg)]);
   });
 
-  if (rows.length > 1) {
-    const table = formatTable(rows);
-    console.log(table);
-  } else {
-    console.log('No crash summaries in the past', days, 'days.');
-  }
+  console.log(formatTable(rows));
 }
 
 if (require.main === module) {
