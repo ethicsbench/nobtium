@@ -29,9 +29,34 @@
   </table>
 
   <h2 id="latestHeader" style="display:none;">Latest Crashes</h2>
+  <div id="filterControls" style="margin-bottom:10px;">
+    <label><input type="checkbox" value="normal" checked> normal</label>
+    <label><input type="checkbox" value="warning" checked> warning</label>
+    <label><input type="checkbox" value="critical" checked> critical</label>
+    <label><input type="checkbox" value="unknown" checked> unknown</label>
+  </div>
   <ul id="latestList"></ul>
 
   <script>
+  let latest = [];
+
+  function filterLogs() {
+    const list = document.getElementById('latestList');
+    list.innerHTML = '';
+    const checks = Array.from(document.querySelectorAll('#filterControls input[type=checkbox]'))
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+    latest.forEach(item => {
+      const levelValue = item.crash_level || 'unknown';
+      if (!checks.includes(levelValue)) return;
+      const li = document.createElement('li');
+      const ts = new Date(item.timestamp).toLocaleString();
+      li.textContent = `[${ts}] ${item.agent} (${item.model}) - ${item.reason} - ${item.message}`;
+      li.classList.add(`level-${levelValue}`);
+      list.appendChild(li);
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch('../crash_summary.json');
@@ -94,14 +119,10 @@
       const list = document.getElementById('latestList');
       const header = document.getElementById('latestHeader');
       header.style.display = 'block';
-      const latest = data.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5);
-      latest.forEach(item => {
-        const li = document.createElement('li');
-        const ts = new Date(item.timestamp).toLocaleString();
-        li.textContent = `[${ts}] ${item.agent} (${item.model}) - ${item.reason} - ${item.message}`;
-        const level = item.crash_level ? `level-${item.crash_level}` : 'level-unknown';
-        li.classList.add(level);
-        list.appendChild(li);
+      latest = data.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5);
+      filterLogs();
+      document.querySelectorAll('#filterControls input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', filterLogs);
       });
 
     } catch(err) {
