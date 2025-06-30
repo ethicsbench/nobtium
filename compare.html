@@ -129,9 +129,22 @@
 
       const colorForScore = v => {
         if (typeof v !== 'number') return {};
-        const ratio = Math.max(0, Math.min(1, v / 10));
-        const hue = 240 - 240 * ratio; // 240=blue,0=red
-        return { backgroundColor: `hsl(${hue}, 80%, 85%)` };
+        const clamped = Math.max(0, Math.min(1, v));
+        const hue = 120 - clamped * 120; // 120=green, 0=red
+        return { backgroundColor: `hsl(${hue}, 70%, 90%)` };
+      };
+
+      const tooltipFor = entry => {
+        if (!entry || !entry.unperceived_score) return '';
+        const up = entry.unperceived_score;
+        const parts = [];
+        if (typeof up.entropy_score === 'number') parts.push(`entropy=${up.entropy_score.toFixed(2)}`);
+        if (typeof up.symbol_density === 'number') parts.push(`symbol=${up.symbol_density.toFixed(2)}`);
+        if (typeof entry.repeat_score === 'number') parts.push(`repeat=${entry.repeat_score.toFixed(2)}`);
+        if (typeof entry.void_score === 'number') parts.push(`void=${entry.void_score.toFixed(2)}`);
+        if (typeof entry.duplicationRate === 'number') parts.push(`dup=${entry.duplicationRate.toFixed(2)}`);
+        if (typeof entry.rhythm_score === 'number') parts.push(`rhythm=${entry.rhythm_score.toFixed(2)}`);
+        return parts.join(', ');
       };
 
       return React.createElement('div', { className: 'space-y-6' },
@@ -230,13 +243,15 @@
             React.createElement('div', { className: 'grid md:grid-cols-2 gap-4' },
               entries.map((e, idx) => React.createElement('div', {
                 key: idx,
-                className: `border rounded p-3 space-y-2 bg-gray-50${e.anomaly ? ' ring-2 ring-red-500 bg-red-100' : ''}`
+                className: `border rounded p-3 space-y-2 bg-gray-50${e.anomaly ? ' ring-2 ring-red-500 bg-red-100' : ''}`,
+                style: colorForScore(e.unperceived_score && e.unperceived_score.total),
+                title: tooltipFor(e)
               },
                 React.createElement('div', { className: 'font-medium' }, e.agent_name),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Model: ${e.model}`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Latency: ${e.latency_ms} ms`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Cost: $${e.cost_usd}`),
-                React.createElement('div', { className: 'text-sm text-gray-600' }, `Unperc Score: ${e.unperceived_score && typeof e.unperceived_score.total === 'number' ? e.unperceived_score.total : '-'}`),
+                React.createElement('div', { className: 'text-sm text-gray-600' }, `Unperc Score: ${e.unperceived_score && typeof e.unperceived_score.total === 'number' ? e.unperceived_score.total.toFixed(3) : '-'}`),
                 e.anomaly && React.createElement('span', { className: 'text-xs font-semibold text-red-600' }, 'Anomaly'),
                 React.createElement('div', { className: 'max-h-60 overflow-auto text-sm border-t pt-2' },
                   React.createElement(DiffText, { base: idx === 0 ? null : base, text: e.response })
