@@ -1,0 +1,10 @@
+agents:
+  - name: aggregator
+    role: aggregator
+    priority: 1
+  - name: summarizer
+    role: summarizer
+    priority: 2
+  - name: translator
+    role: translator
+    priority: 3
