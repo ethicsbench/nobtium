@@ -35,7 +35,14 @@ function aggregate(entries) {
   entries.forEach(e => {
     const agent = e.agent || 'unknown';
     if (!agents[agent]) {
-      agents[agent] = { total: 0, critical: 0, warning: 0, scoreSum: 0, count: 0 };
+      agents[agent] = {
+        total: 0,
+        critical: 0,
+        warning: 0,
+        scoreSum: 0,
+        count: 0,
+        unperceived_score: null,
+      };
     }
     agents[agent].total += Number(e.total) || 0;
     agents[agent].critical += Number(e.critical) || 0;
@@ -43,6 +50,9 @@ function aggregate(entries) {
     if (typeof e.score === 'number' && !Number.isNaN(e.score)) {
       agents[agent].scoreSum += e.score;
       agents[agent].count += 1;
+    }
+    if (e.unperceived_score && typeof e.unperceived_score.total === 'number') {
+      agents[agent].unperceived_score = e.unperceived_score;
     }
   });
   return agents;
@@ -92,13 +102,22 @@ function generateWeeklyReport(dir = BASE_DIR, days = DAYS) {
     return;
   }
 
-  const rows = [['Agent', 'Total', 'Critical', 'Warning', 'Avg. Score']];
+  const rows = [['Agent', 'Total', 'Critical', 'Warning', 'Avg. Score', 'Unperceived Score']];
   agents.sort().forEach(agent => {
     const info = data[agent];
     const avg = info.count ? Math.round(info.scoreSum / info.count) : 'N/A';
     let critical = String(info.critical);
     if (info.critical > 5) critical += ' \uD83D\uDD25';
-    rows.push([agent, String(info.total), critical, String(info.warning), String(avg)]);
+    const up = info.unperceived_score && info.unperceived_score.total;
+    const upVal = typeof up === 'number' ? up : '';
+    rows.push([
+      agent,
+      String(info.total),
+      critical,
+      String(info.warning),
+      String(avg),
+      String(upVal),
+    ]);
   });
 
   console.log(formatTable(rows));
