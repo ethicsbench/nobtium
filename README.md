@@ -16,13 +16,17 @@ cp .env.example .env  # edit if needed
 
 ## 📊 Score Generation
 
-`scripts/unperceived_score.js` computes an **unperceived_score** from log text. Each metric means:
+`scripts/unperceived_score.js` and its helper modules calculate an **unperceived_score** for each log entry.  The score is a weighted mix of several signals:
 
-- `entropy_score`: Shannon entropy of characters
-- `symbol_density`: proportion of symbol characters
-- `hidden_pattern_score`: result of repetitive pattern detection
-- `visual_score`: metrics from `calculateVisualScore(image_path)` when an image is available
-- `total`: overall metric averaging the three values above
+- `entropy_score`: Shannon entropy of the text
+- `symbol_density`: ratio of non‑alphanumeric symbols
+- `hidden_pattern_score`: detection of repeating sequences or n‑grams
+- `rhythm_score`: irregular whitespace rhythm (via `whitespaceRhythm.js`)
+- `duplicationRate`/`repeat_score`: message or n‑gram repetition across logs
+- `void_score`: semantic void or nonsense content (`semanticVoidScore.js`)
+- `audio_score`: audio anomalies such as ultrasound or silence (see `scripts/audio/`)
+- `visual_score`: edge clustering, text density and color depth when an image is provided
+- `total`: weighted sum of the above metrics using `DEFAULT_WEIGHTS` in the script
 
 ## 🚨 Anomaly Detection
 
