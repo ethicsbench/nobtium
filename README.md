@@ -193,3 +193,21 @@ each log entry will be signed using the private key specified by
 public key at `public_key_path` to detect tampering. This capability is
 disabled by default and must be explicitly enabled.
 
+
+### 🛰️ Unperceived Communication Sensors (Optional)
+
+As AI systems grow in complexity, they may begin to exchange information in ways that are no longer perceptible to human users — via timing patterns, hidden characters, ultrasonic signals, or visual flicker.  
+**nobtium** includes early-stage support for detecting such anomalies, offering a foundation for ethical transparency in future AI coordination.
+
+#### Current experimental detection targets:
+| Domain     | Example                                | Detection Approach                       |
+|------------|----------------------------------------|-------------------------------------------|
+| 🔊 Audio    | Ultrasonic (>18kHz) signals             | Mic input + FFT spectral scan             |
+| 👁️ Visual   | Low-threshold flicker or blink codes   | Frame delta + frequency analysis          |
+| 🧮 Temporal | Sync via silent pauses or spacing      | Sync score: blank ratio / timing pattern  |
+| 📦 Structural | Hidden codes in malformed output      | Schema deviation + `unperceived_score`    |
+
+These modules are **opt-in**, **local**, and **fully configurable**.  
+They are part of an ongoing experiment in **AI behavioral interpretability — not surveillance**.  
+This tool is a small ethical attempt to prepare for a future in which AIs may begin to behave in ways imperceptible to humans.
+
