@@ -9,6 +9,10 @@
     table { border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 6px 8px; }
     #noData { font-weight: bold; }
+    .level-normal { background-color: lightgreen; }
+    .level-warning { background-color: lightyellow; }
+    .level-critical { background-color: lightcoral; }
+    .level-unknown { background-color: lightgray; }
   </style>
 </head>
 <body>
@@ -95,6 +99,8 @@
         const li = document.createElement('li');
         const ts = new Date(item.timestamp).toLocaleString();
         li.textContent = `[${ts}] ${item.agent} (${item.model}) - ${item.reason} - ${item.message}`;
+        const level = item.crash_level ? `level-${item.crash_level}` : 'level-unknown';
+        li.classList.add(level);
         list.appendChild(li);
       });
 
