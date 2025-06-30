@@ -16,6 +16,7 @@ test('detects repetition loops and writes summary', () => {
   const saved = JSON.parse(fs.readFileSync(out, 'utf8'));
   expect(saved.summary.normal).toBe(1);
   expect(saved.summary.critical).toBe(0);
+  expect(saved.summary.score).toBe(0);
   expect(Array.isArray(saved.details)).toBe(true);
   expect(saved.details[0].reason).toBe('repetition_loop');
   expect(typeof saved.details[0].crash_score).toBe('number');
@@ -50,5 +51,6 @@ test('assigns crash level classification', () => {
   expect(saved.summary.normal).toBe(1);
   expect(saved.summary.warning).toBe(1);
   expect(saved.summary.critical).toBe(1);
+  expect(saved.summary.score).toBe(4);
   fs.unlinkSync(out);
 });
