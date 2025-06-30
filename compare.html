@@ -30,6 +30,7 @@
       const [logs, setLogs] = useState([]);
       const [agentFilter, setAgentFilter] = useState('');
       const [modelFilter, setModelFilter] = useState('');
+      const [showAnomalyOnly, setShowAnomalyOnly] = useState(false);
       const [summary, setSummary] = useState({});
 
       useEffect(() => {
@@ -65,8 +66,12 @@
 
       const filtered = logs.filter(l =>
         (!agentFilter || l.agent_name === agentFilter) &&
-        (!modelFilter || l.model === modelFilter)
+        (!modelFilter || l.model === modelFilter) &&
+        (!showAnomalyOnly || l.anomaly)
       );
+
+      const anomalyCount = filtered.filter(l => l.anomaly).length;
+      const totalCount = filtered.length;
 
       const groups = {};
       filtered.forEach(l => {
@@ -82,7 +87,7 @@
       };
 
       return React.createElement('div', { className: 'space-y-6' },
-        React.createElement('div', { className: 'flex space-x-4 mb-4' },
+        React.createElement('div', { className: 'flex space-x-4 mb-4 items-center' },
           React.createElement('select', {
             className: 'border px-2 py-1',
             value: agentFilter,
@@ -98,7 +103,17 @@
           },
             React.createElement('option', { value: '' }, 'All Models'),
             ...models.map(m => React.createElement('option', { key: m, value: m }, m))
-          )
+          ),
+          React.createElement('label', { className: 'flex items-center space-x-1' },
+            React.createElement('input', {
+              type: 'checkbox',
+              className: 'form-checkbox',
+              checked: showAnomalyOnly,
+              onChange: e => setShowAnomalyOnly(e.target.checked)
+            }),
+            React.createElement('span', null, '異常のみ表示')
+          ),
+          React.createElement('div', { className: 'ml-auto text-sm' }, `異常数 ${anomalyCount} / ${totalCount}`)
         ),
         React.createElement('table', { className: 'min-w-full text-sm mb-4 border' },
           React.createElement('thead', null,
@@ -153,11 +168,15 @@
           return React.createElement('div', { key: prompt, className: 'border rounded p-4 space-y-4' },
             React.createElement('div', { className: 'font-semibold' }, prompt),
             React.createElement('div', { className: 'grid md:grid-cols-2 gap-4' },
-              entries.map((e, idx) => React.createElement('div', { key: idx, className: 'border rounded p-3 space-y-2 bg-gray-50' },
+              entries.map((e, idx) => React.createElement('div', {
+                key: idx,
+                className: `border rounded p-3 space-y-2 bg-gray-50${e.anomaly ? ' ring-2 ring-red-500 bg-red-100' : ''}`
+              },
                 React.createElement('div', { className: 'font-medium' }, e.agent_name),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Model: ${e.model}`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Latency: ${e.latency_ms} ms`),
                 React.createElement('div', { className: 'text-sm text-gray-600' }, `Cost: $${e.cost_usd}`),
+                React.createElement('div', { className: 'text-sm text-gray-600' }, `Unperc Score: ${e.unperceived_score && typeof e.unperceived_score.total === 'number' ? e.unperceived_score.total : '-'}`),
                 React.createElement('div', { className: 'max-h-60 overflow-auto text-sm border-t pt-2' },
                   React.createElement(DiffText, { base: idx === 0 ? null : base, text: e.response })
                 )
