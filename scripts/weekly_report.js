@@ -219,7 +219,8 @@ if (require.main === module) {
   console.log("🧠 nobtium AI Safety Monitoring System");
   console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
   console.log("🚀 Preserving creativity, protecting when needed");
-  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
+  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md");
+  console.log("π  Built for human-AI cooperation\n");
   generateWeeklyReport().catch(err => {
     console.error('Failed to generate weekly report:', err);
   });
