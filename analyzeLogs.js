@@ -1,6 +1,17 @@
 #!/usr/bin/env node
 'use strict';
-// This project follows the ethical principles in ETHICAL_MANIFESTO.md. Use responsibly.
+/*
+ * nobtium AI Safety Monitoring System π
+ * 
+ * Ethical Principles:
+ * - Human dignity is sacred
+ * - Privacy is a fundamental right  
+ * - AI creativity must flourish safely
+ * - Power requires responsibility
+ * - Transparency builds trust
+ * 
+ * See ETHICAL_MANIFESTO.md for complete principles
+ */
 
 const fs = require('fs');
 const path = require('path');
@@ -310,7 +321,7 @@ if (require.main === module) {
     console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
     console.log("🚀 Preserving creativity, protecting when needed");
     console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md");
-    console.log("π  Built for human-AI cooperation\n");
+    console.log("π\n");
     console.warn('This tool records conversations. Consent is required before use.');
     const vm = new ViolationManager();
     const userId = `${os.hostname()}-${os.userInfo().username}`;
