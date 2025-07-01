@@ -2,7 +2,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { wrap } = require('../sapWrapper');
+const { wrap } = require('../nobtiumWrapper');
 const { analyzeLogs } = require('../analyzeLogs');
 
 const logPath = path.join(__dirname, '..', 'multi_agent_log.json');
