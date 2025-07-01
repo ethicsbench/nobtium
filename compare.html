@@ -714,9 +714,9 @@
 
       const colorForScore = v => {
         if (typeof v !== 'number') return {};
-        const clamped = Math.max(0, Math.min(1, v));
-        const hue = 120 - clamped * 120; // 120=green, 0=red
-        return { backgroundColor: `hsl(${hue}, 70%, 90%)` };
+        if (v >= 0.7) return { backgroundColor: '#fecaca' }; // red-200
+        if (v >= 0.4) return { backgroundColor: '#fed7aa' }; // orange-200
+        return { backgroundColor: '#bbf7d0' }; // green-200
       };
 
       const tooltipFor = entry => {
