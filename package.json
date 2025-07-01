@@ -11,7 +11,7 @@
   },
   "name": "nobtium",
   "version": "1.0.0",
-  "description": "AI Safety Monitoring System - Ethical AI research and development tool committed to human dignity, privacy, and beneficial AI",
+  "description": "AI Safety Monitoring System - Ethical AI research tool committed to human dignity, privacy, and beneficial AI π",
   "main": "analyzeLogs.js",
   "bin": {
     "nobtium-analyzer": "./analyzeLogs.js"
@@ -32,7 +32,7 @@
     "privacy",
     "research"
   ],
-  "author": "ethicsbench <ethicsbench@gmail.com>",
+  "author": "Built for human-AI cooperation π",
   "license": "ISC",
   "type": "commonjs",
   "repository": {

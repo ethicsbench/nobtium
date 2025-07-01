@@ -184,3 +184,7 @@ server.js              Simple API server
   permissions, for example with `chmod 600 <logfile>`.
 - This project is licensed under the Apache License 2.0. Refer to
   [NOTICE.txt](NOTICE.txt) for details.
+
+---
+
+*Built for human-AI cooperation π*
