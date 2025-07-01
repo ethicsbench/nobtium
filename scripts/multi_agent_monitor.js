@@ -1,3 +1,17 @@
+/*
+ * nobtium AI Safety Monitoring System
+ * 
+ * Ethical Principles:
+ * - Human dignity is sacred
+ * - Privacy is a fundamental right  
+ * - AI creativity must flourish safely
+ * - Power requires responsibility
+ * - Transparency builds trust
+ * 
+ * Built for the future of human-AI cooperation
+ * See ETHICAL_MANIFESTO.md for complete principles
+ */
+
 'use strict';
 
 function similarity(a, b) {
