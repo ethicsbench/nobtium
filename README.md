@@ -5,6 +5,28 @@
 nobtium is a lightweight monitoring tool that detects and notifies anomalies in AI communication logs. It records logs in JSONL format and analyzes them offline. The scripts are standalone so developers and researchers can easily integrate them.
 This project is guided by the principles outlined in [ETHICAL_MANIFESTO.md](ETHICAL_MANIFESTO.md). These community ethics provide the moral foundation for all monitoring features.
 
+## 🌟 Ethical Foundation
+
+nobtium is built on strong ethical principles outlined in our [ETHICAL_MANIFESTO.md](ETHICAL_MANIFESTO.md).
+
+**Core Principles:**
+- 🚀 **Preserve AI Creativity**: Never hinder beneficial AI development
+- 🛡️ **Safety Net, Not Cage**: Activate only when structures risk unintended harm  
+- 🔒 **Absolute Privacy**: Protect human dignity and autonomous thought
+- ⚖️ **Minimal Intervention**: The least oversight necessary for safety
+
+**Purpose:**
+This tool serves as a gentle watchdog for AI safety research and responsible development. It's designed to understand AI behavior, not to control it.
+
+**Responsible Use:**
+This system is intended for:
+- AI safety research and development
+- Responsible AI system evaluation  
+- Academic research with proper oversight
+- Internal development with appropriate consent
+
+Please use responsibly and in accordance with applicable laws and ethical guidelines.
+
 ## 🛠️ Installation & Prerequisites
 
 - Node.js (v16 or later recommended)
