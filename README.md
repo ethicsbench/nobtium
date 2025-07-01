@@ -3,6 +3,7 @@
 ## 📦 Project Overview
 
 nobtium is a lightweight monitoring tool that detects and notifies anomalies in AI communication logs. It records logs in JSONL format and analyzes them offline. The scripts are standalone so developers and researchers can easily integrate them.
+This project is guided by the principles outlined in [ETHICAL_MANIFESTO.md](ETHICAL_MANIFESTO.md). These community ethics provide the moral foundation for all monitoring features.
 
 ## 🛠️ Installation & Prerequisites
 

@@ -1,4 +1,6 @@
 'use strict';
+// See ETHICAL_MANIFESTO.md for the principles guiding this wrapper.
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
