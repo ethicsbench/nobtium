@@ -197,6 +197,54 @@ class StatisticalValidator {
     calculateStandardDeviation(data) {
         return Math.sqrt(this.calculateVariance(data));
     }
+
+    // Cohen's Kappa for inter-rater reliability
+    cohensKappa(observed, expected) {
+        if (!Array.isArray(observed) || !Array.isArray(expected)) return 0;
+        if (observed.length !== expected.length) return 0;
+        let agreement = 0;
+        const labelCounts = {};
+        observed.forEach((o, i) => {
+            if (o === expected[i]) agreement++;
+            labelCounts[o] = (labelCounts[o] || 0) + 1;
+            labelCounts[expected[i]] = (labelCounts[expected[i]] || 0) + 1;
+        });
+        const total = observed.length;
+        const p0 = agreement / total;
+        let pe = 0;
+        const labels = Object.keys(labelCounts);
+        for (const label of labels) {
+            const po = observed.filter(v => v === label).length / total;
+            const peLabel = expected.filter(v => v === label).length / total;
+            pe += po * peLabel;
+        }
+        if (pe === 1) return 1;
+        return (p0 - pe) / (1 - pe);
+    }
+
+    // Matthews Correlation Coefficient for binary classification
+    matthewsCorrelation(tp, tn, fp, fn) {
+        const numerator = tp * tn - fp * fn;
+        const denominator = Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
+        if (!denominator) return 0;
+        return numerator / denominator;
+    }
+
+    // Cohen's d effect size
+    effectSize(group1, group2) {
+        const mean1 = this.calculateMean(group1);
+        const mean2 = this.calculateMean(group2);
+        const var1 = this.calculateVariance(group1);
+        const var2 = this.calculateVariance(group2);
+        const pooledStd = Math.sqrt(((group1.length - 1) * var1 + (group2.length - 1) * var2) / (group1.length + group2.length - 2));
+        if (!pooledStd) return 0;
+        return (mean1 - mean2) / pooledStd;
+    }
+
+    // Alias for cross-validation
+    crossValidate(data, folds = 5) {
+        return this.performCrossValidation(data, folds);
+    }
     
     calculateDifferenceCI(sample1, sample2) {
         const mean1 = this.calculateMean(sample1);
