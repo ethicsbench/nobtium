@@ -164,6 +164,10 @@ function generateWeeklyReport(
 }
 
 if (require.main === module) {
+  console.log("🧠 nobtium AI Safety Monitoring System");
+  console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
+  console.log("🚀 Preserving creativity, protecting when needed");
+  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
   const logPath = process.argv[2] || 'multi_agent_log.json';
   const errPath = process.argv[3] || 'multi_agent_error_log.json';
   generateWeeklyReport(logPath, errPath);

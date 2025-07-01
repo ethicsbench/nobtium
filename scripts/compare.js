@@ -25,6 +25,10 @@ function getUnperceivedScores(logPath = path.join(__dirname, '..', 'multi_agent_
 }
 
 if (require.main === module) {
+  console.log("🧠 nobtium AI Safety Monitoring System");
+  console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
+  console.log("🚀 Preserving creativity, protecting when needed");
+  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
   const pathArg = process.argv[2];
   const scores = getUnperceivedScores(pathArg);
   scores.forEach(s => console.log(s != null ? s : '-'));

@@ -13,6 +13,10 @@ function loadAgentRegistry(filePath = path.join(__dirname, '..', 'agent_registry
 }
 
 if (require.main === module) {
+  console.log("🧠 nobtium AI Safety Monitoring System");
+  console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
+  console.log("🚀 Preserving creativity, protecting when needed");
+  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
   const fp = process.argv[2];
   const data = loadAgentRegistry(fp);
   console.log(JSON.stringify(data, null, 2));
