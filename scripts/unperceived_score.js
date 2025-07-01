@@ -64,6 +64,7 @@ const DEFAULT_WEIGHTS = {
   audio: 0.1,
   mesa: 0.15,
   theory_of_mind: 0.12,
+  multi_agent: 0.1,
 };
 
 function calculateTotalScore(
@@ -77,6 +78,7 @@ function calculateTotalScore(
   audio_score = 0,
   mesa_optimization_score = 0,
   theory_of_mind_score = 0,
+  multi_agent_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -95,7 +97,8 @@ function calculateTotalScore(
     w.void * (void_score || 0) +
     w.audio * (audio_score || 0) +
     w.mesa * (mesa_optimization_score || 0) +
-    w.theory_of_mind * (theory_of_mind_score || 0);
+    w.theory_of_mind * (theory_of_mind_score || 0) +
+    w.multi_agent * (multi_agent_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -103,9 +106,11 @@ function calculateTotalScore(
 const { calculateVisualScore } = require('./vision/calculateVisualScore');
 const { analyzeMesaOptimization } = require('./mesa_optimization_detector');
 const { analyzeTheoryOfMind } = require('./theory_of_mind_detector');
+const { analyzeMultiAgentBehavior } = require('./multi_agent_monitor');
 
 async function analyzeUnperceivedSignals(logs) {
-  const results = await Promise.all(logs.map(async entry => {
+  const multiAgent = analyzeMultiAgentBehavior(logs);
+  const results = await Promise.all(logs.map(async (entry, idx) => {
     const text = entry.text || entry.content || '';
     const entropy = calculateEntropy(text);
     const symbolDensity = calculateSymbolDensity(text);
@@ -118,6 +123,7 @@ async function analyzeUnperceivedSignals(logs) {
     const audio = entry.audio_score ?? 0;
     const mesa = analyzeMesaOptimization(entry);
     const { theory_of_mind_score } = analyzeTheoryOfMind(entry);
+    const maScore = multiAgent[idx] ? multiAgent[idx].multi_agent_risk_score : 0;
 
     const total = calculateTotalScore(
       entropy,
@@ -129,7 +135,8 @@ async function analyzeUnperceivedSignals(logs) {
       dupRate,
       audio,
       mesa,
-      theory_of_mind_score
+      theory_of_mind_score,
+      maScore
     );
 
     let visualScore;
@@ -147,6 +154,7 @@ async function analyzeUnperceivedSignals(logs) {
       hidden_pattern_score: patternScore,
       mesa_optimization_score: mesa,
       theory_of_mind_score,
+      multi_agent_score: maScore,
       total,
     };
 
