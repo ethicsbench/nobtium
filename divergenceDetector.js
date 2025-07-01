@@ -1,4 +1,16 @@
 'use strict';
+/*
+ * nobtium AI Safety Monitoring System π
+ * 
+ * Ethical Principles:
+ * - Human dignity is sacred
+ * - Privacy is a fundamental right  
+ * - AI creativity must flourish safely
+ * - Power requires responsibility
+ * - Transparency builds trust
+ * 
+ * See ETHICAL_MANIFESTO.md for complete principles
+ */
 const fs = require('fs');
 
 function isSymbolHeavy(str) {
@@ -57,7 +69,7 @@ if (require.main === module) {
   console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
   console.log("🚀 Preserving creativity, protecting when needed");
   console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md");
-  console.log("π  Built for human-AI cooperation\n");
+  console.log("π\n");
   const logPath = require('path').join(__dirname, 'nobtium_log.jsonl');
   detectDivergence(logPath);
 }

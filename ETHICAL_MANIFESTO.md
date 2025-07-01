@@ -52,4 +52,4 @@ This monitoring system is designed as a lighthouse that guides safely, not a fen
 
 *"A single line of code that saves time, money, and effort is just the entry point to recognizing what really matters: the future of human-AI cooperation."*
 
-π
+*π*
