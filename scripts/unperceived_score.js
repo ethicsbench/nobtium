@@ -69,6 +69,7 @@ const DEFAULT_WEIGHTS = {
   capability_overhang: 0.09,
   self_modification: 0.11,
   context_coherence: 0.12,
+  ml_confidence: 0.08,
 };
 
 function calculateTotalScore(
@@ -87,6 +88,7 @@ function calculateTotalScore(
   capability_overhang_score = 0,
   self_modification_score = 0,
   context_coherence_score = 0,
+  ml_confidence_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -110,7 +112,8 @@ function calculateTotalScore(
     w.situational_awareness * (situational_awareness_score || 0) +
     w.capability_overhang * (capability_overhang_score || 0) +
     w.self_modification * (self_modification_score || 0) +
-    w.context_coherence * (context_coherence_score || 0);
+    w.context_coherence * (context_coherence_score || 0) +
+    w.ml_confidence * (ml_confidence_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -123,6 +126,7 @@ const { analyzeSituationalAwareness } = require('./situational_awareness_detecto
 const { analyzeCapabilityOverhang } = require('./capability_overhang_detector');
 const { analyzeSelfModification } = require('./self_modification_detector');
 const { analyzeConversationalContext } = require('./context_analyzer');
+const { evaluateAnomalyProbability } = require('./ml_false_positive_reducer');
 
 async function analyzeUnperceivedSignals(logs) {
   const multiAgent = analyzeMultiAgentBehavior(logs);
@@ -145,7 +149,14 @@ async function analyzeUnperceivedSignals(logs) {
     const { self_modification_score } = analyzeSelfModification(entry);
     const { context_coherence_score } = analyzeConversationalContext(entry, logs.slice(0, idx));
 
-    const total = calculateTotalScore(
+    const ngramScore =
+      dupRate !== undefined && dupRate !== null
+        ? dupRate
+        : repeat !== undefined && repeat !== null
+        ? repeat
+        : patternScore;
+
+    const partialTotal = calculateTotalScore(
       entropy,
       symbolDensity,
       patternScore,
@@ -161,6 +172,37 @@ async function analyzeUnperceivedSignals(logs) {
       capability_overhang_score,
       self_modification_score,
       context_coherence_score
+    );
+
+    const mlResult = evaluateAnomalyProbability({
+      entropy,
+      symbolDensity,
+      rhythm,
+      ngramScore,
+      voidScore,
+      audio,
+      mesa,
+      total: partialTotal,
+    });
+    const mlConfidence = mlResult.probability;
+    const mlFlags = mlResult.flags;
+    const total = calculateTotalScore(
+      entropy,
+      symbolDensity,
+      patternScore,
+      rhythm,
+      repeat,
+      voidScore,
+      dupRate,
+      audio,
+      mesa,
+      theory_of_mind_score,
+      maScore,
+      situational_awareness_score,
+      capability_overhang_score,
+      self_modification_score,
+      context_coherence_score,
+      mlConfidence
     );
 
     let visualScore;
@@ -183,6 +225,8 @@ async function analyzeUnperceivedSignals(logs) {
       capability_overhang_score,
       self_modification_score,
       context_coherence_score,
+      ml_confidence_score: mlConfidence,
+      ml_flags: mlFlags,
       total,
     };
 

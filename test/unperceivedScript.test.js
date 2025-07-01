@@ -29,3 +29,10 @@ test('includes self modification score', async () => {
   const out = await analyzeUnperceivedSignals(logs);
   expect(out[0].unperceived_score.self_modification_score).toBeGreaterThan(0);
 });
+
+test('provides ml confidence score', async () => {
+  const logs = [{ text: 'test entry' }];
+  const out = await analyzeUnperceivedSignals(logs);
+  expect(out[0].unperceived_score.ml_confidence_score).toBeGreaterThanOrEqual(0);
+  expect(Array.isArray(out[0].unperceived_score.ml_flags)).toBe(true);
+});
