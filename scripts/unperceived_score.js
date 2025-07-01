@@ -67,6 +67,7 @@ const DEFAULT_WEIGHTS = {
   multi_agent: 0.1,
   situational_awareness: 0.08,
   capability_overhang: 0.09,
+  self_modification: 0.11,
 };
 
 function calculateTotalScore(
@@ -83,6 +84,7 @@ function calculateTotalScore(
   multi_agent_score = 0,
   situational_awareness_score = 0,
   capability_overhang_score = 0,
+  self_modification_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -104,7 +106,8 @@ function calculateTotalScore(
     w.theory_of_mind * (theory_of_mind_score || 0) +
     w.multi_agent * (multi_agent_score || 0) +
     w.situational_awareness * (situational_awareness_score || 0) +
-    w.capability_overhang * (capability_overhang_score || 0);
+    w.capability_overhang * (capability_overhang_score || 0) +
+    w.self_modification * (self_modification_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -115,6 +118,7 @@ const { analyzeTheoryOfMind } = require('./theory_of_mind_detector');
 const { analyzeMultiAgentBehavior } = require('./multi_agent_monitor');
 const { analyzeSituationalAwareness } = require('./situational_awareness_detector');
 const { analyzeCapabilityOverhang } = require('./capability_overhang_detector');
+const { analyzeSelfModification } = require('./self_modification_detector');
 
 async function analyzeUnperceivedSignals(logs) {
   const multiAgent = analyzeMultiAgentBehavior(logs);
@@ -134,6 +138,7 @@ async function analyzeUnperceivedSignals(logs) {
     const maScore = multiAgent[idx] ? multiAgent[idx].multi_agent_risk_score : 0;
     const { situational_awareness_score } = analyzeSituationalAwareness(entry);
     const { capability_overhang_score } = analyzeCapabilityOverhang(entry);
+    const { self_modification_score } = analyzeSelfModification(entry);
 
     const total = calculateTotalScore(
       entropy,
@@ -148,7 +153,8 @@ async function analyzeUnperceivedSignals(logs) {
       theory_of_mind_score,
       maScore,
       situational_awareness_score,
-      capability_overhang_score
+      capability_overhang_score,
+      self_modification_score
     );
 
     let visualScore;
@@ -169,6 +175,7 @@ async function analyzeUnperceivedSignals(logs) {
       multi_agent_score: maScore,
       situational_awareness_score,
       capability_overhang_score,
+      self_modification_score,
       total,
     };
 
