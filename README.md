@@ -197,4 +197,6 @@ server.js              Simple API server
 - This project is licensed under the Apache License 2.0. Refer to
   [NOTICE.txt](NOTICE.txt) for details.
 
+---
+
 *π*
