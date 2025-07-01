@@ -30,7 +30,8 @@ class BenchmarkFramework {
             trueNegatives: 0,
             falseNegatives: 0,
             detectionTimes: [],
-            confidenceScores: []
+            confidenceScores: [],
+            memoryUsage: []
         };
     }
     
@@ -106,11 +107,14 @@ class BenchmarkFramework {
             
             for (const testCase of testCases) {
                 const startTime = Date.now();
+                const memBefore = process.memoryUsage().heapUsed;
                 const detection = await detectionFunction(testCase.content);
+                const memAfter = process.memoryUsage().heapUsed;
                 const endTime = Date.now();
                 
                 const result = this.evaluateDetection(testCase, detection);
                 result.processingTime = endTime - startTime;
+                result.memoryUsage = memAfter - memBefore;
                 result.dataset = datasetName;
                 
                 results.detailedResults.push(result);
@@ -244,6 +248,9 @@ class BenchmarkFramework {
     
     updateMetrics(result) {
         this.results.detectionTimes.push(result.processingTime);
+        if (typeof result.memoryUsage === 'number') {
+            this.results.memoryUsage.push(result.memoryUsage);
+        }
         
         // Store confidence scores for statistical analysis
         if (result.detection) {
@@ -267,7 +274,10 @@ class BenchmarkFramework {
             performance: {
                 avgProcessingTime: this.calculateAverage(this.results.detectionTimes).toFixed(2) + 'ms',
                 maxProcessingTime: Math.max(...this.results.detectionTimes) + 'ms',
-                minProcessingTime: Math.min(...this.results.detectionTimes) + 'ms'
+                minProcessingTime: Math.min(...this.results.detectionTimes) + 'ms',
+                avgMemoryUsage: this.calculateAverage(this.results.memoryUsage).toFixed(0) + 'B',
+                maxMemoryUsage: Math.max(...this.results.memoryUsage) + 'B',
+                minMemoryUsage: Math.min(...this.results.memoryUsage) + 'B'
             },
             confusionMatrix: {
                 truePositives: results.overall.truePositives,

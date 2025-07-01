@@ -169,6 +169,8 @@ node analyzeLogs.js nobtium_log.json --validate
 
 This generates `benchmark_stats.json` and updates `academic_dashboard.html` with confidence intervals from the benchmark suite. Parameters can be tweaked in `.env` under **Academic validation settings**.
 
+See [ACADEMIC_VALIDATION_STATUS.md](ACADEMIC_VALIDATION_STATUS.md) for a detailed overview of current validation limitations and community research opportunities.
+
 ## 📂 Directory Structure
 
 ```
