@@ -21,7 +21,10 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "dashboard": "node webDashboard.js"
+    "dashboard": "node webDashboard.js",
+    "benchmark": "node scripts/run_benchmark.js",
+    "validate": "node scripts/statistical_validation.js",
+    "optimize": "node scripts/optimize_thresholds.js"
   },
   "keywords": [
     "ai-safety",

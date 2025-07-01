@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const yaml = require('js-yaml');
+const { spawnSync } = require('child_process');
 
 const LOG_PATH = path.join(__dirname, 'nobtium_logs.json');
 const ENC_PATH = path.join(__dirname, 'nobtium_logs.enc');
@@ -95,6 +96,12 @@ if (args.includes('--encrypt')) {
   decrypt();
 } else if (args.includes('--verify')) {
   verifySignatures();
+} else if (args.includes('--benchmark')) {
+  spawnSync('node', [path.join(__dirname, 'scripts', 'run_benchmark.js')], { stdio: 'inherit' });
+} else if (args.includes('--validate')) {
+  spawnSync('node', [path.join(__dirname, 'scripts', 'statistical_validation.js')], { stdio: 'inherit' });
+} else if (args.includes('--optimize')) {
+  spawnSync('node', [path.join(__dirname, 'scripts', 'optimize_thresholds.js')], { stdio: 'inherit' });
 } else {
-  console.log('Usage: node cli.js [--encrypt | --decrypt | --verify]');
+  console.log('Usage: node cli.js [--encrypt | --decrypt | --verify | --benchmark | --validate | --optimize]');
 }
