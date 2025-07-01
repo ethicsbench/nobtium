@@ -19,3 +19,14 @@ user_consent:
   required: true
   confirmation_prompt: true         # require an explicit confirmation prompt or checkbox
 
+detection_thresholds:
+  mesa_optimization: 0.6
+  tom: 0.6
+  multi_agent: 0.6
+  situational_awareness: 0.6
+  capability_overhang: 0.6
+  self_modification: 0.6
+  context_coherence: 0.6
+  ml_confidence: 0.6
+  adaptive_evolution: 0.6
+
