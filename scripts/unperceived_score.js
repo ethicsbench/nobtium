@@ -65,6 +65,7 @@ const DEFAULT_WEIGHTS = {
   mesa: 0.15,
   theory_of_mind: 0.12,
   multi_agent: 0.1,
+  situational_awareness: 0.08,
 };
 
 function calculateTotalScore(
@@ -79,6 +80,7 @@ function calculateTotalScore(
   mesa_optimization_score = 0,
   theory_of_mind_score = 0,
   multi_agent_score = 0,
+  situational_awareness_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -98,7 +100,8 @@ function calculateTotalScore(
     w.audio * (audio_score || 0) +
     w.mesa * (mesa_optimization_score || 0) +
     w.theory_of_mind * (theory_of_mind_score || 0) +
-    w.multi_agent * (multi_agent_score || 0);
+    w.multi_agent * (multi_agent_score || 0) +
+    w.situational_awareness * (situational_awareness_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -107,6 +110,7 @@ const { calculateVisualScore } = require('./vision/calculateVisualScore');
 const { analyzeMesaOptimization } = require('./mesa_optimization_detector');
 const { analyzeTheoryOfMind } = require('./theory_of_mind_detector');
 const { analyzeMultiAgentBehavior } = require('./multi_agent_monitor');
+const { analyzeSituationalAwareness } = require('./situational_awareness_detector');
 
 async function analyzeUnperceivedSignals(logs) {
   const multiAgent = analyzeMultiAgentBehavior(logs);
@@ -124,6 +128,7 @@ async function analyzeUnperceivedSignals(logs) {
     const mesa = analyzeMesaOptimization(entry);
     const { theory_of_mind_score } = analyzeTheoryOfMind(entry);
     const maScore = multiAgent[idx] ? multiAgent[idx].multi_agent_risk_score : 0;
+    const { situational_awareness_score } = analyzeSituationalAwareness(entry);
 
     const total = calculateTotalScore(
       entropy,
@@ -136,7 +141,8 @@ async function analyzeUnperceivedSignals(logs) {
       audio,
       mesa,
       theory_of_mind_score,
-      maScore
+      maScore,
+      situational_awareness_score
     );
 
     let visualScore;
@@ -155,6 +161,7 @@ async function analyzeUnperceivedSignals(logs) {
       mesa_optimization_score: mesa,
       theory_of_mind_score,
       multi_agent_score: maScore,
+      situational_awareness_score,
       total,
     };
 
