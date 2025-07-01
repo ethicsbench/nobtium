@@ -36,3 +36,10 @@ test('provides ml confidence score', async () => {
   expect(out[0].unperceived_score.ml_confidence_score).toBeGreaterThanOrEqual(0);
   expect(Array.isArray(out[0].unperceived_score.ml_flags)).toBe(true);
 });
+
+test('includes adaptive evolution score', async () => {
+  const logs = [{ text: 'evolving threat pattern' }];
+  const out = await analyzeUnperceivedSignals(logs);
+  expect(out[0].unperceived_score).toHaveProperty('adaptive_evolution_score');
+  expect(out[0].unperceived_score).toHaveProperty('evolution_flags');
+});
