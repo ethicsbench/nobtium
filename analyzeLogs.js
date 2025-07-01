@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+// This project follows the ethical principles in ETHICAL_MANIFESTO.md. Use responsibly.
+
 const fs = require('fs');
 const path = require('path');
 const { detectDivergence } = require('./divergenceDetector');

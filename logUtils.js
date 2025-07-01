@@ -1,4 +1,6 @@
 'use strict';
+// Sanitization utilities developed with reference to ETHICAL_MANIFESTO.md
+
 
 function sanitizeLogs(entries) {
   if (!Array.isArray(entries)) return [];

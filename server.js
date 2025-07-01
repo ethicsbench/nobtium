@@ -1,4 +1,6 @@
 'use strict';
+// Refer to ETHICAL_MANIFESTO.md to ensure this API server is used responsibly.
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');

@@ -1,3 +1,4 @@
+// Log integrity helpers. Please see ETHICAL_MANIFESTO.md for moral guidance.
 const fs = require('fs');
 const crypto = require('crypto');
 
