@@ -27,6 +27,7 @@ cp .env.example .env  # edit if needed
 - `audio_score`: audio anomalies such as ultrasound or silence (see `scripts/audio/`)
 - `visual_score`: edge clustering, text density and color depth when an image is provided
 - `total`: weighted sum of the above metrics using `DEFAULT_WEIGHTS` in the script
+- `ml_confidence_score`: probability from the ensemble ML false positive reducer
 
 ## 🚨 Anomaly Detection
 
