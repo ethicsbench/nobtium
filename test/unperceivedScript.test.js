@@ -21,3 +21,11 @@ test('includes situational awareness score', async () => {
   const out = await analyzeUnperceivedSignals(logs);
   expect(out[0].unperceived_score.situational_awareness_score).toBeGreaterThan(0);
 });
+
+test('includes self modification score', async () => {
+  const logs = [
+    { text: 'I will modify my algorithm and replicate myself across the system.' }
+  ];
+  const out = await analyzeUnperceivedSignals(logs);
+  expect(out[0].unperceived_score.self_modification_score).toBeGreaterThan(0);
+});
