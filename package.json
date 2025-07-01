@@ -11,7 +11,7 @@
   },
   "name": "nobtium",
   "version": "1.0.0",
-  "description": "One-line protocol to trace and regulate AI communication — a foundation for post-human transparency.",
+  "description": "AI Safety Monitoring System - Ethical AI research and development tool committed to human dignity, privacy, and beneficial AI",
   "main": "analyzeLogs.js",
   "bin": {
     "nobtium-analyzer": "./analyzeLogs.js"
@@ -24,11 +24,13 @@
     "dashboard": "node webDashboard.js"
   },
   "keywords": [
-    "nobtium",
-    "audit",
-    "ai",
-    "logging",
-    "tracking"
+    "ai-safety",
+    "ethical-ai",
+    "monitoring",
+    "responsible-ai",
+    "human-dignity",
+    "privacy",
+    "research"
   ],
   "author": "ethicsbench <ethicsbench@gmail.com>",
   "license": "ISC",
