@@ -306,6 +306,10 @@ function analyzeLogs(logPath, opts = {}) {
 
 if (require.main === module) {
   (async () => {
+    console.log("🧠 nobtium AI Safety Monitoring System");
+    console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
+    console.log("🚀 Preserving creativity, protecting when needed");
+    console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
     console.warn('This tool records conversations. Consent is required before use.');
     const vm = new ViolationManager();
     const userId = `${os.hostname()}-${os.userInfo().username}`;

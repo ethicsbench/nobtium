@@ -53,6 +53,10 @@ module.exports = { detectDivergence };
 
 // If run directly, analyze default nobtium_log.jsonl in this directory
 if (require.main === module) {
+  console.log("🧠 nobtium AI Safety Monitoring System");
+  console.log("🌟 Committed to Human Dignity, Privacy, and Beneficial AI");
+  console.log("🚀 Preserving creativity, protecting when needed");
+  console.log("📖 Built on ethical principles - see ETHICAL_MANIFESTO.md\n");
   const logPath = require('path').join(__dirname, 'nobtium_log.jsonl');
   detectDivergence(logPath);
 }
