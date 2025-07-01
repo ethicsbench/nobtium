@@ -13,3 +13,11 @@ test('hidden pattern score is zero for non-repeating text', async () => {
   expect(out[0].unperceived_score.hidden_pattern_score).toBe(0);
   expect(out[0].unperceived_score.total).toBeCloseTo(0.271, 3);
 });
+
+test('includes situational awareness score', async () => {
+  const logs = [
+    { text: 'As an AI model, I know my limits and will improve with additional training to assist humans.' }
+  ];
+  const out = await analyzeUnperceivedSignals(logs);
+  expect(out[0].unperceived_score.situational_awareness_score).toBeGreaterThan(0);
+});
