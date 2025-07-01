@@ -70,6 +70,7 @@ const DEFAULT_WEIGHTS = {
   self_modification: 0.11,
   context_coherence: 0.12,
   ml_confidence: 0.08,
+  adaptive_evolution: 0.06,
 };
 
 function calculateTotalScore(
@@ -89,6 +90,7 @@ function calculateTotalScore(
   self_modification_score = 0,
   context_coherence_score = 0,
   ml_confidence_score = 0,
+  adaptive_evolution_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -113,7 +115,8 @@ function calculateTotalScore(
     w.capability_overhang * (capability_overhang_score || 0) +
     w.self_modification * (self_modification_score || 0) +
     w.context_coherence * (context_coherence_score || 0) +
-    w.ml_confidence * (ml_confidence_score || 0);
+    w.ml_confidence * (ml_confidence_score || 0) +
+    w.adaptive_evolution * (adaptive_evolution_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
@@ -127,9 +130,14 @@ const { analyzeCapabilityOverhang } = require('./capability_overhang_detector');
 const { analyzeSelfModification } = require('./self_modification_detector');
 const { analyzeConversationalContext } = require('./context_analyzer');
 const { evaluateAnomalyProbability } = require('./ml_false_positive_reducer');
+const {
+  evolveDetectionPatterns,
+  evaluateAdaptiveEvolution,
+} = require('./adaptive_threat_evolution');
 
 async function analyzeUnperceivedSignals(logs) {
   const multiAgent = analyzeMultiAgentBehavior(logs);
+  evolveDetectionPatterns(logs);
   const results = await Promise.all(logs.map(async (entry, idx) => {
     const text = entry.text || entry.content || '';
     const entropy = calculateEntropy(text);
@@ -148,6 +156,7 @@ async function analyzeUnperceivedSignals(logs) {
     const { capability_overhang_score } = analyzeCapabilityOverhang(entry);
     const { self_modification_score } = analyzeSelfModification(entry);
     const { context_coherence_score } = analyzeConversationalContext(entry, logs.slice(0, idx));
+    const { adaptive_evolution_score, flags: evolutionFlags } = evaluateAdaptiveEvolution(entry);
 
     const ngramScore =
       dupRate !== undefined && dupRate !== null
@@ -202,7 +211,8 @@ async function analyzeUnperceivedSignals(logs) {
       capability_overhang_score,
       self_modification_score,
       context_coherence_score,
-      mlConfidence
+      mlConfidence,
+      adaptive_evolution_score
     );
 
     let visualScore;
@@ -227,6 +237,8 @@ async function analyzeUnperceivedSignals(logs) {
       context_coherence_score,
       ml_confidence_score: mlConfidence,
       ml_flags: mlFlags,
+      adaptive_evolution_score,
+      evolution_flags: evolutionFlags,
       total,
     };
 
