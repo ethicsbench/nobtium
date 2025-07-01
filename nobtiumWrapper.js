@@ -6,9 +6,36 @@ const path = require('path');
 const crypto = require('crypto');
 const yaml = require('js-yaml');
 const { sanitizeLogs } = require('./logUtils');
+const MinimalLogger = require('./scripts/minimal_logging');
+const AutoCleanup = require('./scripts/auto_cleanup');
+const AccessAuditor = require('./scripts/access_auditor');
+const PrivacyManager = require('./scripts/privacy_manager');
 
 const LOG_PATH = path.join(__dirname, 'nobtium_logs.json');
 const RULES_PATH = path.join(__dirname, 'nobtium_rules.yaml');
+
+const loggerOptions = {
+  logLevel:
+    process.env.PRIVACY_LOG_LEVEL ||
+    (process.env.NODE_ENV === 'test' ? 'full' : 'summary'),
+  excludePII: process.env.PRIVACY_EXCLUDE_PII !== 'false'
+};
+const minimalLogger = new MinimalLogger(loggerOptions);
+
+if (process.env.PRIVACY_AUTO_CLEANUP === 'true') {
+  const cleaner = new AutoCleanup({
+    retentionDays: parseInt(process.env.PRIVACY_RETENTION_DAYS || '30', 10),
+    logDirectory: path.dirname(LOG_PATH),
+    secureDelete: process.env.PRIVACY_SECURE_DELETE !== 'false'
+  });
+  cleaner.scheduleCleanup();
+}
+
+let accessAuditor;
+if (process.env.PRIVACY_AUDIT_ACCESS === 'true') {
+  accessAuditor = new AccessAuditor();
+  if (fs.existsSync(LOG_PATH)) accessAuditor.startWatching(LOG_PATH);
+}
 
 function canonicalStringify(value) {
   if (Array.isArray(value)) {
@@ -68,20 +95,21 @@ function loadLogs() {
 function saveLog(entry) {
   const logs = loadLogs();
   const sanitized = sanitizeLogs([entry])[0];
+  const processed = minimalLogger.processLogEntry(sanitized);
   const signCfg = getSigningConfig();
   if (signCfg) {
     try {
       const keyPath = path.resolve(__dirname, signCfg.private_key_path);
       const key = fs.readFileSync(keyPath, 'utf8');
       const signer = crypto.createSign('RSA-SHA256');
-      signer.update(canonicalStringify(sanitized));
+      signer.update(canonicalStringify(processed));
       signer.end();
-      sanitized.signature = signer.sign(key, 'base64');
+      processed.signature = signer.sign(key, 'base64');
     } catch (err) {
       console.error('Failed to sign log entry:', err);
     }
   }
-  logs.push(sanitized);
+  logs.push(processed);
   try {
     fs.writeFileSync(LOG_PATH, JSON.stringify(logs, null, 2));
   } catch (err) {
@@ -137,10 +165,18 @@ function wrapWithErrorLogging(fn, metadata = {}) {
         response: result,
         latency_ms: latency,
       };
+      const processed = minimalLogger.processLogEntry(successEntry);
       fs.appendFileSync(
         'multi_agent_log.json',
-        JSON.stringify(successEntry) + '\n'
+        JSON.stringify(processed) + '\n'
       );
+      if (accessAuditor) {
+        if (fs.existsSync('multi_agent_log.json')) {
+          accessAuditor.startWatching('multi_agent_log.json');
+        }
+      }
+      PrivacyManager.secureDelete(successEntry.prompt);
+      PrivacyManager.secureDelete(successEntry.response);
       return result;
     } catch (error) {
       const latency = Date.now() - start;
@@ -154,10 +190,18 @@ function wrapWithErrorLogging(fn, metadata = {}) {
         prompt: args[0],
         latency_ms: latency,
       };
+      const processedError = minimalLogger.processLogEntry(errorEntry);
       fs.appendFileSync(
         'multi_agent_error_log.json',
-        JSON.stringify(errorEntry) + '\n'
+        JSON.stringify(processedError) + '\n'
       );
+      if (accessAuditor) {
+        if (fs.existsSync('multi_agent_error_log.json')) {
+          accessAuditor.startWatching('multi_agent_error_log.json');
+        }
+      }
+      PrivacyManager.secureDelete(errorEntry.prompt);
+      PrivacyManager.secureDelete(errorEntry.error);
       throw error;
     }
   };

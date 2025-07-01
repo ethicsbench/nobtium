@@ -16,8 +16,34 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { getUnperceivedSummary } = require('./scripts/unperceived_api');
+const MinimalLogger = require('./scripts/minimal_logging');
+const AutoCleanup = require('./scripts/auto_cleanup');
+const AccessAuditor = require('./scripts/access_auditor');
 
 const app = express();
+
+const loggerOptions = {
+  logLevel:
+    process.env.PRIVACY_LOG_LEVEL ||
+    (process.env.NODE_ENV === 'test' ? 'full' : 'summary'),
+  excludePII: process.env.PRIVACY_EXCLUDE_PII !== 'false'
+};
+const minimalLogger = new MinimalLogger(loggerOptions);
+
+if (process.env.PRIVACY_AUTO_CLEANUP === 'true') {
+  const cleaner = new AutoCleanup({
+    retentionDays: parseInt(process.env.PRIVACY_RETENTION_DAYS || '30', 10),
+    logDirectory: path.dirname(getLogPath()),
+    secureDelete: process.env.PRIVACY_SECURE_DELETE !== 'false'
+  });
+  cleaner.scheduleCleanup();
+}
+
+let accessAuditor;
+if (process.env.PRIVACY_AUDIT_ACCESS === 'true') {
+  accessAuditor = new AccessAuditor();
+  if (fs.existsSync(getLogPath())) accessAuditor.startWatching(getLogPath());
+}
 
 function getSummaryPath() {
   return process.env.SUMMARY_JSON_PATH || path.join(__dirname, 'summary.json');
@@ -35,6 +61,9 @@ app.get('/api/summary', (req, res) => {
   try {
     const data = fs.readFileSync(summaryPath, 'utf8');
     const summary = JSON.parse(data);
+    if (accessAuditor) {
+      accessAuditor.detectUnauthorizedAccess(summaryPath);
+    }
     res.json(summary);
   } catch {
     res.status(500).json({ error: 'Invalid summary format' });
@@ -63,12 +92,19 @@ app.get('/api/multi-agent-log', (req, res) => {
       return null;
     }
   }).filter(Boolean);
-  res.json(entries);
+  const processed = entries.map(e => minimalLogger.processLogEntry(e));
+  if (accessAuditor) {
+    accessAuditor.detectUnauthorizedAccess(logPath);
+  }
+  res.json(processed);
 });
 
 app.get('/api/unperceived-summary', (req, res) => {
   try {
     const summary = getUnperceivedSummary(getLogPath());
+    if (accessAuditor) {
+      accessAuditor.detectUnauthorizedAccess(getLogPath());
+    }
     res.json(summary);
   } catch {
     res.status(500).json({ error: 'Failed to compute summary' });
