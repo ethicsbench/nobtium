@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { wrap } = require('../sapWrapper');
+const { wrap } = require('../nobtiumWrapper');
 const { analyzeLogs } = require('../analyzeLogs');
 const { ViolationManager } = require('../violation_manager');
 

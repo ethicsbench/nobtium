@@ -64,11 +64,11 @@ Choose the model with the second argument of `detectAnomalies(logs, MODEL)` in t
 
 ## 🧩 Wrapping AI Calls
 
-`sapWrapper.js` exposes `wrap(fn, metadata)` to capture prompts, responses and
+`nobtiumWrapper.js` exposes `wrap(fn, metadata)` to capture prompts, responses and
 errors when calling an AI model.  Wrap your API call like so:
 
 ```javascript
-const { wrap } = require('./sapWrapper');
+const { wrap } = require('./nobtiumWrapper');
 async function callAI(prompt) {
   // ... call the provider
 }

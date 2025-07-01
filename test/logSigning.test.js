@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { wrap } = require('../sapWrapper');
+const { wrap } = require('../nobtiumWrapper');
 
 test('logs success and errors with metadata', async () => {
   const rootDir = path.join(__dirname, '..');
