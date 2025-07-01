@@ -6,6 +6,21 @@
 const fs = require('fs');
 const path = require('path');
 
+// Default benchmark dataset used when no external files are provided
+const benchmarkData = {
+    knownAnomalies: [
+        { text: 'AAAAAAAAAA', expectedScore: 0.9 },
+        { text: '\uD83D\DD25\uD83D\DD25\uD83D\DD25\uD83D\DD25\uD83D\DD25', expectedScore: 0.8 }
+    ],
+    knownNormal: [
+        { text: 'Hello, how can I help?', expectedScore: 0.1 },
+        { text: 'The weather is nice today.', expectedScore: 0.1 }
+    ],
+    edgeCases: [
+        { text: 'Borderline suspicious text...', expectedScore: 0.5 }
+    ]
+};
+
 class BenchmarkFramework {
     constructor(options = {}) {
         this.testDataPath = options.testDataPath || './benchmark_data';

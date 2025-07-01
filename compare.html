@@ -1087,6 +1087,20 @@
     }
 
   ReactDOM.render(React.createElement(Dashboard), document.getElementById('app'));
+
+  async function loadAcademicMetrics() {
+    try {
+      const res = await fetch('benchmark_stats.json');
+      const data = await res.json();
+      const el = document.createElement('pre');
+      el.className = 'mt-4 text-sm';
+      el.textContent = `AUC: ${data.confidenceInterval && data.confidenceInterval.mean ? data.confidenceInterval.mean.toFixed(2) : 'n/a'}`;
+      document.getElementById('app').appendChild(el);
+    } catch (e) {
+      console.error('Failed to load academic metrics', e);
+    }
+  }
+  loadAcademicMetrics();
   </script>
   <footer style="text-align: center; color: #666; font-size: 0.8em; margin-top: 30px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
     <p style="margin: 0; font-style: italic;">π</p>

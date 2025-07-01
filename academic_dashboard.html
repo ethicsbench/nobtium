@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Academic Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Academic Validation Dashboard</h1>
+  <canvas id="roc" width="400" height="200"></canvas>
+  <script>
+    async function loadData() {
+      try {
+        const res = await fetch('benchmark_stats.json');
+        const data = await res.json();
+        drawROC(data.confidenceInterval);
+      } catch(e) {
+        console.error('Failed to load data', e);
+      }
+    }
+    function drawROC(ci) {
+      const ctx = document.getElementById('roc').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [ci.lowerBound.toFixed(2), ci.mean.toFixed(2), ci.upperBound.toFixed(2)],
+          datasets: [{ label: 'Confidence Interval', data: [ci.lowerBound, ci.mean, ci.upperBound] }]
+        }
+      });
+    }
+    loadData();
+  </script>
+</body>
+</html>

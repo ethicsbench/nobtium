@@ -343,16 +343,30 @@ if (require.main === module) {
     const args = process.argv.slice(2);
     let logArg;
     let mode = 'summary';
+    let validate = false;
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--mode') {
         mode = args[i + 1] || 'summary';
         i++;
+      } else if (args[i] === '--validate') {
+        validate = true;
       } else if (!logArg) {
         logArg = args[i];
       }
     }
     const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
     analyzeLogs(logPath, { mode });
+
+    if (validate) {
+      const BenchmarkFramework = require('./BenchmarkFramework');
+      const StatisticalValidator = require('./StatisticalValidator');
+      const framework = new BenchmarkFramework();
+      const validator = new StatisticalValidator();
+      const results = await framework.runBenchmarkSuite(async t => ({ unperceived_score: 0 }));
+      const ci = validator.calculateConfidenceInterval(framework.results.detectionTimes);
+      const reporter = new (require('./AcademicReporter'))();
+      reporter.generateJSON({ results, confidenceInterval: ci }, 'benchmark_stats.json');
+    }
 
     if (mode === 'summary') {
       let crashEntries = [];

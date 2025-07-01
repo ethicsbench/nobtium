@@ -159,6 +159,16 @@ npm test
 
 Run this to execute the Jest unit tests.
 
+## 🎓 Academic Validation
+
+Enable advanced statistical validation by passing the `--validate` flag when running `analyzeLogs.js`:
+
+```bash
+node analyzeLogs.js nobtium_log.json --validate
+```
+
+This generates `benchmark_stats.json` and updates `academic_dashboard.html` with confidence intervals from the benchmark suite. Parameters can be tweaked in `.env` under **Academic validation settings**.
+
 ## 📂 Directory Structure
 
 ```
