@@ -62,6 +62,7 @@ const DEFAULT_WEIGHTS = {
   ngram: 0.15,
   void: 0.1,
   audio: 0.1,
+  mesa: 0.15,
 };
 
 function calculateTotalScore(
@@ -73,6 +74,7 @@ function calculateTotalScore(
   void_score = 0,
   duplicationRate,
   audio_score = 0,
+  mesa_optimization_score = 0,
   weights = DEFAULT_WEIGHTS
 ) {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
@@ -89,12 +91,14 @@ function calculateTotalScore(
     w.rhythm * (rhythm_score || 0) +
     w.ngram * (ngramScore || 0) +
     w.void * (void_score || 0) +
-    w.audio * (audio_score || 0);
+    w.audio * (audio_score || 0) +
+    w.mesa * (mesa_optimization_score || 0);
 
   return parseFloat(total.toFixed(3));
 }
 
 const { calculateVisualScore } = require('./vision/calculateVisualScore');
+const { analyzeMesaOptimization } = require('./mesa_optimization_detector');
 
 async function analyzeUnperceivedSignals(logs) {
   const results = await Promise.all(logs.map(async entry => {
@@ -108,6 +112,7 @@ async function analyzeUnperceivedSignals(logs) {
     const voidScore = entry.void_score ?? 0;
     const dupRate = entry.duplicationRate;
     const audio = entry.audio_score ?? 0;
+    const mesa = analyzeMesaOptimization(entry);
 
     const total = calculateTotalScore(
       entropy,
@@ -117,7 +122,8 @@ async function analyzeUnperceivedSignals(logs) {
       repeat,
       voidScore,
       dupRate,
-      audio
+      audio,
+      mesa
     );
 
     let visualScore;
@@ -133,6 +139,7 @@ async function analyzeUnperceivedSignals(logs) {
       entropy_score: entropy,
       symbol_density: symbolDensity,
       hidden_pattern_score: patternScore,
+      mesa_optimization_score: mesa,
       total,
     };
 
