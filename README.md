@@ -29,7 +29,7 @@ Please use responsibly and in accordance with applicable laws and ethical guidel
 
 ## 🛠️ Installation & Prerequisites
 
-- Node.js (v16 or later recommended)
+ - Node.js (v18 or later recommended)
 - Add required settings to `.env`. A sample `.env.example` is included.
 
 ```bash
