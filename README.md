@@ -1,5 +1,12 @@
 # nobtium
 
+*"Fighting fire with fire - a proven safety approach"*
+*Built with AI*
+
+Using AI to monitor AI behavior safely.
+
+---
+
 ## 📦 Project Overview
 
 nobtium is a lightweight monitoring tool that detects and notifies anomalies in AI communication logs. It records logs in JSONL format and analyzes them offline. The scripts are standalone so developers and researchers can easily integrate them.

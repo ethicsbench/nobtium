@@ -1,5 +1,12 @@
 # The nobtium Ethical Manifesto
 
+*"Fighting fire with fire - a proven safety approach"*
+*Built with AI*
+
+Using AI to monitor AI behavior safely.
+
+---
+
 ## Our Fundamental Beliefs
 
 **Human Dignity is Sacred**
