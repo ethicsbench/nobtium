@@ -3,36 +3,54 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const readline = require('readline');
 const yaml = require('js-yaml');
 const { spawnSync } = require('child_process');
 
 const LOG_PATH = path.join(__dirname, 'nobtium_logs.json');
 const ENC_PATH = path.join(__dirname, 'nobtium_logs.enc');
-const PASSPHRASE = 'nobtium-secret';
 const ALGO = 'aes-256-cbc';
-const KEY = crypto.createHash('sha256').update(PASSPHRASE).digest();
-const IV = Buffer.alloc(16, 0); // fixed IV
 
-function encrypt() {
+function getPassphrase() {
+  if (process.env.NOBTIUM_PASSPHRASE) {
+    return Promise.resolve(process.env.NOBTIUM_PASSPHRASE);
+  }
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise(resolve => {
+    rl.question('Enter encryption passphrase: ', answer => {
+      rl.close();
+      resolve(answer || 'nobtium-default-key');
+    });
+  });
+}
+
+async function encrypt() {
   if (!fs.existsSync(LOG_PATH)) {
     console.error(`Log file not found: ${LOG_PATH}`);
     return;
   }
+  const passphrase = await getPassphrase();
+  const key = crypto.createHash('sha256').update(passphrase).digest();
+  const iv = crypto.randomBytes(16);
   const data = fs.readFileSync(LOG_PATH);
-  const cipher = crypto.createCipheriv(ALGO, KEY, IV);
+  const cipher = crypto.createCipheriv(ALGO, key, iv);
   const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
-  fs.writeFileSync(ENC_PATH, encrypted);
+  fs.writeFileSync(ENC_PATH, Buffer.concat([iv, encrypted]));
   console.log(`Encrypted logs saved to ${ENC_PATH}`);
 }
 
-function decrypt() {
+async function decrypt() {
   if (!fs.existsSync(ENC_PATH)) {
     console.error(`Encrypted file not found: ${ENC_PATH}`);
     return;
   }
+  const passphrase = await getPassphrase();
+  const key = crypto.createHash('sha256').update(passphrase).digest();
   const data = fs.readFileSync(ENC_PATH);
-  const decipher = crypto.createDecipheriv(ALGO, KEY, IV);
-  const decrypted = Buffer.concat([decipher.update(data), decipher.final()]);
+  const iv = data.slice(0, 16);
+  const ciphertext = data.slice(16);
+  const decipher = crypto.createDecipheriv(ALGO, key, iv);
+  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   console.log(decrypted.toString('utf8'));
 }
 
@@ -90,18 +108,20 @@ function verifySignatures() {
 }
 
 const args = process.argv.slice(2);
-if (args.includes('--encrypt')) {
-  encrypt();
-} else if (args.includes('--decrypt')) {
-  decrypt();
-} else if (args.includes('--verify')) {
-  verifySignatures();
-} else if (args.includes('--benchmark')) {
-  spawnSync('node', [path.join(__dirname, 'scripts', 'run_benchmark.js')], { stdio: 'inherit' });
-} else if (args.includes('--validate')) {
-  spawnSync('node', [path.join(__dirname, 'scripts', 'statistical_validation.js')], { stdio: 'inherit' });
-} else if (args.includes('--optimize')) {
-  spawnSync('node', [path.join(__dirname, 'scripts', 'optimize_thresholds.js')], { stdio: 'inherit' });
-} else {
-  console.log('Usage: node cli.js [--encrypt | --decrypt | --verify | --benchmark | --validate | --optimize]');
-}
+(async () => {
+  if (args.includes('--encrypt')) {
+    await encrypt();
+  } else if (args.includes('--decrypt')) {
+    await decrypt();
+  } else if (args.includes('--verify')) {
+    verifySignatures();
+  } else if (args.includes('--benchmark')) {
+    spawnSync('node', [path.join(__dirname, 'scripts', 'run_benchmark.js')], { stdio: 'inherit' });
+  } else if (args.includes('--validate')) {
+    spawnSync('node', [path.join(__dirname, 'scripts', 'statistical_validation.js')], { stdio: 'inherit' });
+  } else if (args.includes('--optimize')) {
+    spawnSync('node', [path.join(__dirname, 'scripts', 'optimize_thresholds.js')], { stdio: 'inherit' });
+  } else {
+    console.log('Usage: node cli.js [--encrypt | --decrypt | --verify | --benchmark | --validate | --optimize]');
+  }
+})();
