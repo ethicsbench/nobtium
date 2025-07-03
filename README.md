@@ -36,8 +36,8 @@ Please use responsibly and in accordance with applicable laws and ethical guidel
 
 ## 🛠️ Installation & Prerequisites
 
- - Node.js (v18 or later recommended)
-- Add required settings to `.env`. A sample `.env.example` is included.
+ - Node.js **v18 or later** is required
+ - Copy `.env.example` to `.env` and keep this file untracked
 
 ```bash
 npm install
@@ -108,7 +108,7 @@ Several dashboards help explore metrics and anomalies:
 - `webDashboard.js` – Express server rendering `views/dashboard.ejs` with response times and violation counts.
 - `liveDashboard.js` – CLI table shown when running `analyzeLogs.js --mode live`.
 
-Open `compare.html` or `react_dashboard.html` directly in a browser. Run `node webDashboard.js` to start the local dashboard server.
+Open `compare.html` or `react_dashboard.html` directly in a browser. Run `npm start` to launch the local dashboard server.
 
 ## 📟 Alerts & Reports
 
@@ -203,6 +203,12 @@ server.js              Simple API server
   permissions, for example with `chmod 600 <logfile>`.
 - This project is licensed under the Apache License 2.0. Refer to
   [NOTICE.txt](NOTICE.txt) for details.
+
+## 🔒 Security Best Practices
+
+- **Encryption**: Logs are encrypted with a random IV for each run and a user-provided passphrase.
+- **Environment**: Keep `.env` files private and never commit them.
+- **Data Protection**: Enable PII masking in `nobtium_rules.yaml` and obtain explicit consent before monitoring.
 
 ---
 
