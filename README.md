@@ -12,6 +12,22 @@ Using AI to monitor AI behavior safely.
 nobtium is a lightweight monitoring tool that detects and notifies anomalies in AI communication logs. It records logs in JSONL format and analyzes them offline. The scripts are standalone so developers and researchers can easily integrate them.
 This project is guided by the principles outlined in [ETHICAL_MANIFESTO.md](ETHICAL_MANIFESTO.md). These community ethics provide the moral foundation for all monitoring features.
 
+## 🚀 Evolution: nobtium-zk
+
+I've developed the next generation of this monitoring system: **[nobtium-zk](https://github.com/ethicsbench/nobtium-zk)** - bringing the same AI safety capabilities with complete privacy protection through zero-knowledge proofs.
+
+### Why I built nobtium-zk:
+- ✅ **Privacy-first**: Mathematical guarantees for sensitive environments
+- ✅ **Same power**: All 9 detection methods, now privacy-protected  
+- ✅ **Production-ready**: <1 second proof generation for enterprise use
+- ✅ **GDPR compliant**: Built for regulated industries
+
+### Choose your approach:
+- **Use nobtium** for: Research, development, internal monitoring
+- **Use [nobtium-zk](https://github.com/ethicsbench/nobtium-zk)** for: Production, compliance, privacy-critical applications
+
+**[→ Explore the privacy-enhanced evolution](https://github.com/ethicsbench/nobtium-zk)**
+
 ## 🌟 Ethical Foundation
 
 nobtium is built on strong ethical principles outlined in our [ETHICAL_MANIFESTO.md](ETHICAL_MANIFESTO.md).
