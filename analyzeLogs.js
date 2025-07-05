@@ -24,6 +24,8 @@ const { renderDashboard } = require('./liveDashboard');
 const { ViolationManager } = require('./violation_manager');
 const notifySlack = require('./notifySlack');
 const os = require('os');
+const { classifyLogs } = require('./metaClassifier');
+const { generateStrategy } = require('./strategyEngine');
 
 function readLogFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8').trim();
@@ -118,6 +120,11 @@ function assignCrashLevels(results) {
     }
   });
   return results;
+}
+
+function metaAnalyzeLogs(entries) {
+  const classes = classifyLogs(entries);
+  return generateStrategy(classes);
 }
 
 function writeCsvSummary(outPath, summary) {
@@ -297,6 +304,10 @@ function analyzeLogs(logPath, opts = {}) {
 
   const threaded = buildThreads(entries);
   const patternResults = analyzeThreads(threaded);
+  let meta;
+  if (opts.metaAnalysis) {
+    meta = metaAnalyzeLogs(entries);
+  }
 
   if (mode === 'live') {
     const metrics = {
@@ -313,6 +324,7 @@ function analyzeLogs(logPath, opts = {}) {
 
     printReport(patternResults, { detailed: true });
   }
+  return meta;
 }
 
 if (require.main === module) {
@@ -344,10 +356,13 @@ if (require.main === module) {
     let logArg;
     let mode = 'summary';
     let validate = false;
+    let metaFlag = false;
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--mode') {
         mode = args[i + 1] || 'summary';
         i++;
+      } else if (args[i] === '--meta-analysis') {
+        metaFlag = true;
       } else if (args[i] === '--validate') {
         validate = true;
       } else if (!logArg) {
@@ -355,7 +370,7 @@ if (require.main === module) {
       }
     }
     const logPath = logArg ? path.resolve(logArg) : path.join(__dirname, 'nobtium_log.json');
-    analyzeLogs(logPath, { mode });
+    const metaResult = analyzeLogs(logPath, { mode, metaAnalysis: metaFlag });
 
     if (validate) {
       const BenchmarkFramework = require('./BenchmarkFramework');
@@ -402,8 +417,19 @@ if (require.main === module) {
         console.log(`\u26A0 CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
         await notifySlack(`CRITICAL DETECTED: ${crashSummary.critical} crash(es) found`);
       }
+
+      if (metaFlag && metaResult) {
+        console.log('Meta Analysis:');
+        const counts = metaResult.counts || {};
+        Object.keys(counts).forEach(key => {
+          console.log(`  - ${key} : ${counts[key]}`);
+        });
+        if (metaResult.recommendation) {
+          console.log(`Recommendation: ${metaResult.recommendation}`);
+        }
+      }
     }
   })();
 }
 
-module.exports = { analyzeLogs, detectCrashes, assignCrashScores, assignCrashLevels };
+module.exports = { analyzeLogs, detectCrashes, assignCrashScores, assignCrashLevels, metaAnalyzeLogs };
