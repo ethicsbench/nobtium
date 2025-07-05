@@ -182,6 +182,9 @@ npm test
 
 Run this to execute the Jest unit tests.
 
+The suite now includes checks for the Meta-Understanding classifier and strategy
+engine as well as an end-to-end workflow test.
+
 ## 🎓 Academic Validation
 
 Enable advanced statistical validation by passing the `--validate` flag when running `analyzeLogs.js`:
@@ -201,6 +204,9 @@ examples/              Sample code
 scripts/               Analysis and alert scripts
 scores/                Sample score output
 views/                 EJS templates
+classifier.js          Simple log classifier
+strategyEngine.js      Strategy selection helper
+metaWorkflow.js        Integration workflow
 compare.html           UI for comparison
 react_dashboard.html   React summary dashboard
 webDashboard.js        Express dashboard server
