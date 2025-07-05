@@ -14,7 +14,6 @@ function chooseStrategy(classification) {
   }
 }
 
-module.exports = { chooseStrategy };
 
 function generateStrategy(classifications = []) {
   const counts = classifications.reduce((acc, c) => {
@@ -27,5 +26,5 @@ function generateStrategy(classifications = []) {
   return { counts, recommendation };
 }
 
-module.exports = { generateStrategy };
+module.exports = { chooseStrategy, generateStrategy };
 
