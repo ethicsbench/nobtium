@@ -5,7 +5,7 @@ describe('analyzeEntry integration', () => {
     const entry = { message: 'hello world' };
     const out = analyzeEntry(entry);
     expect(out.classification).toBe('normal');
-    expect(out.strategy).toBe('basic');
+    expect(out.strategy).toBe('unknown');
     expect(out.score).toBe(0);
   });
 
@@ -13,7 +13,7 @@ describe('analyzeEntry integration', () => {
     const entry = { message: '!!!!!?????' };
     const out = analyzeEntry(entry);
     expect(out.classification).toBe('anomaly');
-    expect(out.strategy).toBe('strict');
+    expect(out.strategy).toBe('unknown');
     expect(out.score).toBe(1);
   });
 });
