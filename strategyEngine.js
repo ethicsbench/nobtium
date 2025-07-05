@@ -2,13 +2,18 @@
 
 
 function chooseStrategy(classification) {
-  switch (classification) {
-    case 'anomaly':
-      return 'strict';
-    case 'warning':
-      return 'medium';
-    case 'normal':
-      return 'basic';
+  if (!classification || typeof classification !== 'object') {
+    return 'unknown';
+  }
+  switch (classification.type) {
+    case 'quantitative_complexity':
+      return 'data_reduction';
+    case 'temporal_complexity':
+      return 'temporal_transformation';
+    case 'conceptual_divergence':
+      return 'analogical_bridge';
+    case 'fundamental_alienness':
+      return 'safe_observation';
     default:
       return 'unknown';
   }

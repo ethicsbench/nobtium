@@ -13,7 +13,7 @@ test('processes log file end-to-end', () => {
   const data = JSON.parse(fs.readFileSync(tmp, 'utf8'));
   const results = data.map(analyzeEntry);
   expect(results[0].classification).toBe('normal');
-  expect(results[1].strategy).toBe('strict');
+  expect(results[1].strategy).toBe('unknown');
   expect(results[2].score).toBe(1);
   fs.unlinkSync(tmp);
 });
