@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Meta Understanding Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; }
+  </style>
+</head>
+<body>
+  <h1>Meta Understanding Dashboard</h1>
+  <canvas id="distChart" width="400" height="400"></canvas>
+  <div id="actions"></div>
+<script>
+async function loadData() {
+  try {
+    const res = await fetch('meta_analysis.json');
+    const data = await res.json();
+    const results = Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []);
+    const counts = Object.create(null);
+    const actions = Object.create(null);
+    const confidences = Object.create(null);
+    results.forEach(r => {
+      const type = r.type || 'unknown';
+      counts[type] = (counts[type] || 0) + 1;
+      if (r.recommended_action && !actions[type]) actions[type] = r.recommended_action;
+      if (typeof r.confidence === 'number' && confidences[type] === undefined) {
+        confidences[type] = r.confidence;
+      }
+    });
+    drawChart(counts);
+    drawTable(counts, actions, confidences);
+  } catch (err) {
+    console.error('Failed to load meta analysis data', err);
+  }
+}
+function drawChart(counts) {
+  const labels = Object.keys(counts);
+  const dataVals = labels.map(l => counts[l]);
+  const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9C27B0', '#FF9800'];
+  new Chart(document.getElementById('distChart'), {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{ data: dataVals, backgroundColor: colors.slice(0, labels.length) }]
+    }
+  });
+}
+function drawTable(counts, actions, confidences) {
+  const labels = Object.keys(counts);
+  const table = document.createElement('table');
+  const header = document.createElement('tr');
+  header.innerHTML = '<th>Type</th><th>Recommended Action</th><th>Confidence</th>';
+  table.appendChild(header);
+  labels.forEach(t => {
+    const row = document.createElement('tr');
+    const conf = confidences[t] != null ? (confidences[t] * 100).toFixed(1) + '%' : '';
+    row.innerHTML = `<td>${t}</td><td>${actions[t] || ''}</td><td>${conf}</td>`;
+    table.appendChild(row);
+  });
+  document.getElementById('actions').appendChild(table);
+}
+loadData();
+</script>
+</body>
+</html>
