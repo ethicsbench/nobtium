@@ -115,6 +115,29 @@ Example:
 node analyzeLogs.js nobtium_log.json --mode summary
 ```
 
+### Meta-Understanding Analysis
+nobtium now includes a Meta-Understanding System that classifies types of incomprehensibility in AI patterns:
+
+#### Classification Types
+- `quantitative_complexity` - Information overload requiring data reduction
+- `temporal_complexity` - Speed beyond human cognition requiring temporal analysis  
+- `conceptual_divergence` - Novel patterns requiring analogical bridging
+- `fundamental_alienness` - Potentially dangerous patterns requiring safe observation
+
+#### Usage
+```bash
+# Run meta-analysis on logs
+node analyzeLogs.js logs/multi_agent_log.json --meta-analysis
+
+# View meta-understanding classifications and strategies
+Meta-Analysis Output
+The system provides:
+
+Classification type with confidence score
+Recommended comprehension strategy
+Actionable insights for human reviewers
+```
+
 ## 🔍 Dashboards
 
 Several dashboards help explore metrics and anomalies:
